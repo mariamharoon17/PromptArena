@@ -1,0 +1,10 @@
+.env
+backend/.env
+.venv/
+venv/
+backend/venv/
+backend/benchmark.db
+__pycache__/
+*.pyc
+*.db
+.DS_Store

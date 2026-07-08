@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PromptArena History</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">PromptArena</div>
+    <div class="nav-links">
+      <a href="/">Benchmark</a>
+      <a href="/history.html" style="color:#1a1008;">History</a>
+      <a href="/about.html">About</a>
+    </div>
+  </nav>
+
+  <section class="hero" style="padding:50px 24px 40px;">
+    <div class="badge">Benchmark History</div>
+    <div class="hero-logo" style="font-size:3.5rem;">Past Results</div>
+    <p>All your saved benchmark runs: review, compare and export.</p>
+    <div class="hero-btns">
+      <button onclick="exportCSV()">Export as CSV →</button>
+      <button class="outline" onclick="window.location.href='/'">New Benchmark</button>
+    </div>
+  </section>
+
+  <main>
+
+    <div id="stats-row" style="display:none; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px;"></div>
+
+    <div class="section-label">All benchmark runs</div>
+
+    <div id="loading-history" class="loading-inner">
+      <div class="spinner"></div>
+      <p>Loading history...</p>
+    </div>
+
+    <div id="history-container" style="display:none;">
+      <div id="empty-state" style="display:none; text-align:center; padding:60px; color:#7a6a58;">
+        <p style="font-size:1.1rem; margin-bottom:8px;">No benchmarks yet</p>
+        <p style="font-size:0.85rem;">Run your first benchmark to see results here.</p>
+        <br/>
+        <button onclick="window.location.href='/'" style="margin-top:8px;">Run a Benchmark</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>PromptArena &mdash; AI Benchmark Tool</p>
+  </footer>
+
+  <script>
+    let historyData = [];
+
+    async function loadHistory() {
+      const loadingEl   = document.getElementById("loading-history");
+      const containerEl = document.getElementById("history-container");
+      const emptyEl     = document.getElementById("empty-state");
+
+      try {
+        const res = await fetch(`${BACKEND}/history`);
+        if (!res.ok) throw new Error("Server error");
+
+        historyData = await res.json();
+        loadingEl.style.display   = "none";
+        containerEl.style.display = "block";
+
+        if (historyData.length === 0) {
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        renderStats(historyData);
+        renderHistory(historyData);
+
+      } catch (err) {
+        loadingEl.innerHTML = `<p style='color:#a09080;font-size:0.88rem;'>Could not connect to Flask. Make sure it is running at <strong>http://127.0.0.1:5000</strong></p>`;
+      }
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return "";
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function renderStats(data) {
+      const statsRow  = document.getElementById("stats-row");
+      statsRow.style.display = "grid";
+      const totalRuns = data.length;
+      const avgOpenAI = Math.round(data.reduce((s,r) => s + (r.openai_time||0), 0) / data.length);
+      const avgClaude = Math.round(data.reduce((s,r) => s + (r.claude_time||0), 0) / data.length);
+      const winCounts = { ChatGPT: 0, Claude: 0, Gemini: 0 };
+      data.forEach(r => { const w = getWinner(r); if (w) winCounts[w]++; });
+      const topModel  = Object.keys(winCounts).reduce((a,b) => winCounts[a] > winCounts[b] ? a : b);
+      statsRow.innerHTML = `
+        ${statCard("Total Runs", totalRuns)}
+        ${statCard("Avg ChatGPT", avgOpenAI + "ms")}
+        ${statCard("Avg Claude", avgClaude + "ms")}
+        ${statCard("Top Model", topModel)}
+      `;
+    }
+
+    function statCard(label, value) {
+      return `
+        <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:20px;text-align:center;">
+          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">${label}</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#1a1008;font-weight:700;">${value}</div>
+        </div>
+      `;
+    }
+
+    /* Builds an explainable, signal-based reason for the winner.
+       Reads the actual response text to measure verifiability and usefulness
+       signals (links, table structure, deadlines, funder count, uncertainty
+       flagging) rather than relying on score alone. Fully reproducible - no
+       AI judgement involved. */
+    function buildWinnerReason(row) {
+      const models = [
+        { name: "ChatGPT", score: row.openai_score||0, resp: row.openai_response||"" },
+        { name: "Claude",  score: row.claude_score||0, resp: row.claude_response||"" },
+        { name: "Gemini",  score: row.gemini_score||0, resp: row.gemini_response||"" },
+      ];
+
+      // Measure content signals for each response
+      models.forEach(m => {
+        const t = m.resp.toLowerCase();
+
+        // 1. Verifiable links (http/www/.org/.ac.uk etc)
+        m.links = (m.resp.match(/https?:\/\/|www\.|\.org|\.ac\.uk|\.co\.uk|\.com/gi) || []).length;
+
+        // 2. Table structure (markdown pipes or clear column layout)
+        m.hasTable = (m.resp.match(/\|/g) || []).length >= 4;
+
+        // 3. Specific deadlines / dates mentioned
+        m.deadlines = (m.resp.match(/\b(deadline|closing|closes|20\d\d|january|february|march|april|may|june|july|august|september|october|november|december|rolling)\b/gi) || []).length;
+
+        // 4. Grant amounts (£ figures)
+        m.amounts = (m.resp.match(/£[\d,]+/g) || []).length;
+
+        // 5. Distinct funders named (rough proxy: "trust", "foundation", "fund")
+        m.funders = (m.resp.match(/\b(trust|foundation|fund|charity|charitable)\b/gi) || []).length;
+
+        // 6. Honesty / uncertainty flagging (good — it admits what to verify)
+        m.flagsUncertainty = /\b(verify|check|may (be|have)|approximate|not certain|confirm|please note|as of)\b/i.test(m.resp);
+      });
+
+      const winner   = models.reduce((a,b) => b.score > a.score ? b : a);
+      const others   = models.filter(m => m.name !== winner.name);
+      const runnerUp = others.reduce((a,b) => b.score > a.score ? b : a);
+
+      const reasons = [];
+
+      // Lead with the strongest content signal, not the raw score
+      if (winner.links > 0) {
+        reasons.push(`included ${winner.links} verifiable link${winner.links === 1 ? "" : "s"} (more sources to check)`);
+      }
+      if (winner.hasTable) {
+        reasons.push(`presented results in a structured table`);
+      }
+      if (winner.deadlines > 0) {
+        reasons.push(`specified ${winner.deadlines} deadline${winner.deadlines === 1 ? "" : "s"}/date${winner.deadlines === 1 ? "" : "s"}`);
+      }
+      if (winner.amounts > 0) {
+        reasons.push(`gave ${winner.amounts} grant amount${winner.amounts === 1 ? "" : "s"}`);
+      }
+      if (winner.flagsUncertainty) {
+        reasons.push(`flagged which details to verify (honest about limitations)`);
+      }
+
+      // Always close with the score margin so it's still grounded in the metrics
+      const margin = winner.score - runnerUp.score;
+      const scoreNote = margin > 0
+        ? `overall it scored ${winner.score}/100, ${margin} ahead of ${runnerUp.name}`
+        : `it tied on quality score (${winner.score}/100) and led on content signals`;
+
+      let body;
+      if (reasons.length) {
+        body = `gave the most usable, verifiable response it ${reasons.join(", ")}. ${scoreNote}`;
+      } else {
+        body = `scored highest overall (${winner.score}/100). Note: this response was light on links, tables and deadlines, so verify its funders manually`;
+      }
+
+      return `${winner.name} won ${body}. Always confirm funder details independently, as AI models cannot access live data.`;
+    }
+
+    function renderHistory(data) {
+      const container = document.getElementById("history-list");
+      container.innerHTML = "";
+      data.forEach(row => {
+        const winner = getWinner(row);
+        const reason = buildWinnerReason(row);
+        const card   = document.createElement("div");
+        card.className = "history-card";
+        card.innerHTML = `
+          <div class="history-card-head">
+            <div class="history-head-text">
+              <div class="history-meta">Run #${row.id} &nbsp;&middot;&nbsp; ${row.timestamp} &nbsp;&middot;&nbsp; ${row.category}</div>
+              <div class="history-prompt">${escapeHtml(row.prompt)}</div>
+            </div>
+            <div class="history-actions">
+              ${winner ? `<span class="history-winner">Winner: ${winner}</span>` : ""}
+              <button class="history-delete" onclick="deleteRecord(${row.id})">Delete</button>
+            </div>
+          </div>
+
+          <div class="history-scores">
+            ${scoreStrip("ChatGPT", row.openai_time, row.openai_tokens, row.openai_score, winner === "ChatGPT")}
+            ${scoreStrip("Claude",  row.claude_time,  row.claude_tokens,  row.claude_score,  winner === "Claude")}
+            ${scoreStrip("Gemini",  row.gemini_time,  row.gemini_tokens,  row.gemini_score,  winner === "Gemini")}
+          </div>
+
+          <div class="winner-reason">
+            <span class="winner-reason-label">Why it won</span>
+            <span class="winner-reason-text">${escapeHtml(reason)}</span>
+          </div>
+
+          <div class="history-responses" data-run="${row.id}">
+            <div class="resp-tabs">
+              <button class="resp-tab active" data-tab="openai" onclick="switchHistoryTab(${row.id},'openai')">ChatGPT</button>
+              <button class="resp-tab" data-tab="claude" onclick="switchHistoryTab(${row.id},'claude')">Claude</button>
+              <button class="resp-tab" data-tab="gemini" onclick="switchHistoryTab(${row.id},'gemini')">Gemini</button>
+            </div>
+           <div class="resp-panel active" data-pane="openai">
+              <div class="history-response">${row.openai_response ? marked.parse(row.openai_response) : "No response recorded"}</div>
+            </div>
+            <div class="resp-panel" data-pane="claude">
+              <div class="history-response">${row.claude_response ? marked.parse(row.claude_response) : "No response recorded"}</div>
+            </div>
+            <div class="resp-panel" data-pane="gemini">
+              <div class="history-response">${row.gemini_response ? marked.parse(row.gemini_response) : "No response recorded"}</div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function scoreStrip(name, time, tokens, score, isWin) {
+      return `
+        <div class="score-cell ${isWin ? "score-cell--win" : ""}">
+          <div class="score-name">${name}</div>
+          <div class="score-vals">${time||0} ms &nbsp;&middot;&nbsp; ${tokens||"N/A"} tok &nbsp;&middot;&nbsp; <span class="score-pts">${score||0}/100</span></div>
+        </div>
+      `;
+    }
+
+    function switchHistoryTab(id, model) {
+      const wrap = document.querySelector(`.history-responses[data-run="${id}"]`);
+      if (!wrap) return;
+      wrap.querySelectorAll(".resp-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === model));
+      wrap.querySelectorAll(".resp-panel").forEach(p => p.classList.toggle("active", p.dataset.pane === model));
+    }
+
+    function getWinner(row) {
+      const scores = { ChatGPT: row.openai_score||0, Claude: row.claude_score||0, Gemini: row.gemini_score||0 };
+      return Object.keys(scores).reduce((a,b) => scores[a] > scores[b] ? a : b);
+    }
+
+    async function deleteRecord(id) {
+      if (!confirm("Delete this benchmark run?")) return;
+      await fetch(`${BACKEND}/history/${id}`, { method: "DELETE" });
+      loadHistory();
+    }
+
+    function exportCSV() {
+  if (!historyData.length) { alert("No data to export!"); return; }
+
+  const headers = [
+    "Run ID", "Timestamp", "Category", "Prompt",
+    "AI Model", "Response Time (ms)", "Tokens", "Score (/100)", "Response", "Winner", "Why it won"
+  ];
+
+  const rows = [];
+
+  historyData.forEach(r => {
+    const reason = buildWinnerReason(r);
+    const winner = getWinner(r);
+    const models = [
+      { name: "ChatGPT", resp: r.openai_response, time: r.openai_time, tokens: r.openai_tokens, score: r.openai_score },
+      { name: "Claude",  resp: r.claude_response, time: r.claude_time, tokens: r.claude_tokens, score: r.claude_score },
+      { name: "Gemini",  resp: r.gemini_response, time: r.gemini_time, tokens: r.gemini_tokens, score: r.gemini_score },
+    ];
+
+    models.forEach(m => {
+      rows.push([
+        r.id,
+        r.timestamp,
+        r.category,
+        `"${(r.prompt || "").replace(/"/g, '""')}"`,
+        m.name,
+        m.time || 0,
+        m.tokens || "N/A",
+        m.score || 0,
+        `"${(m.resp || "").replace(/"/g, '""')}"`,
+        winner,
+        `"${reason.replace(/"/g, '""')}"`
+      ].join(","));
+    });
+  });
+
+  const csv  = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url;
+  a.download = `promptarena_results_${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+}
+
+    window.addEventListener("load", loadHistory);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/sidebar.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PromptArena</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">PromptArena</div>
+    <div class="nav-links">
+      <a href="/">Benchmark</a>
+      <a href="/history.html">History</a>
+      <a href="/about.html">About</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="badge">AI Benchmark Tool</div>
+    <div class="hero-logo">PromptArena</div>
+    <h1>Where AI Models<br/>Prove Their <em>Worth</em></h1>
+    <p>Test, compare and benchmark ChatGPT, Claude and Gemini on any task with precision metrics that matter.</p>
+    <div class="hero-btns">
+      <button onclick="document.querySelector('.input-card').scrollIntoView({behavior:'smooth'})">Run a Benchmark</button>
+      <button class="outline" onclick="window.location.href='/learn-more.html'">Learn More</button>
+    </div>
+  </section>
+
+  <main>
+
+    <div class="section-label">Configure your test</div>
+
+    <div class="input-card">
+      <div class="field">
+        <label>Category</label>
+        <select id="category" onchange="updatePlaceholder()">
+         <option value="Funding Research">Funding Research</option>
+          <option value="General">General Knowledge</option>
+          <option value="Coding">Coding</option>
+          <option value="Database">Database / SQL</option>
+          <option value="Website">Website Development</option>
+          <option value="Creative">Creative Writing</option>
+          <option value="Reasoning">Reasoning & Logic</option>
+          </select>
+      </div>
+      <div class="field">
+        <label>Your Prompt</label>
+        <textarea id="prompt" placeholder="e.g. Write a Python function to reverse a string..."></textarea>
+      </div>
+      <button id="runBtn" onclick="runBenchmark()">Run Benchmark</button>
+    </div>
+
+    <div id="active-project-indicator" style="display:none; margin-top:8px; font-size:0.78rem; color:#7a6a58; letter-spacing:1px; padding:8px 12px; background:#faf8f4; border:1px solid #d4c9b8; border-radius:8px;"></div>
+
+    <div id="loading" style="display:none;">
+      <div class="loading-inner">
+        <div class="spinner"></div>
+        <p>Querying all three models. This may take a moment</p>
+      </div>
+    </div>
+
+    <div id="results" style="display:none;">
+
+      <div class="section-label" style="margin-top:48px;">Responses</div>
+
+      <div class="resp-tabs">
+        <button class="resp-tab active" data-tab="openai" onclick="switchTab('openai')">
+          ChatGPT
+          <span class="model-badge" id="badge-openai"></span>
+        </button>
+        <button class="resp-tab" data-tab="claude" onclick="switchTab('claude')">
+          Claude
+          <span class="model-badge" id="badge-claude"></span>
+        </button>
+        <button class="resp-tab" data-tab="gemini" onclick="switchTab('gemini')">
+          Gemini
+          <span class="model-badge" id="badge-gemini"></span>
+        </button>
+      </div>
+
+      <div class="resp-panel active" id="pane-openai">
+        <div class="response-box" id="resp-openai">—</div>
+        <div class="metrics" id="meta-openai"></div>
+      </div>
+      <div class="resp-panel" id="pane-claude">
+        <div class="response-box" id="resp-claude">—</div>
+        <div class="metrics" id="meta-claude"></div>
+      </div>
+      <div class="resp-panel" id="pane-gemini">
+        <div class="response-box" id="resp-gemini">—</div>
+        <div class="metrics" id="meta-gemini"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:48px;">Benchmark Scores</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>ChatGPT</th>
+            <th>Claude</th>
+            <th>Gemini</th>
+          </tr>
+        </thead>
+        <tbody id="scoreBody"></tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:48px;">Visual Analysis</div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Response Time (ms)</div>
+          <div class="chart-subtitle">Lower is better</div>
+          <canvas id="chartTime"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">Overall Score</div>
+          <div class="chart-subtitle">Auto-calculated quality score /100</div>
+          <canvas id="chartTokens"></canvas>
+        </div>
+
+        <div class="chart-card chart-card--wide">
+          <div class="chart-title">Quality Metrics Comparison</div>
+          <div class="chart-subtitle">All 3 models scored side by side</div>
+          <canvas id="chartRadar"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>PromptArena &mdash; AI Benchmark Tool</p>
+  </footer>
+  
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/sidebar.js"></script>
+  <script src="/script.js"></script>
+  <script>
+    function switchTab(model) {
+      document.querySelectorAll('#results .resp-tab').forEach(function (t) {
+        t.classList.toggle('active', t.dataset.tab === model);
+      });
+      document.querySelectorAll('#results .resp-panel').forEach(function (p) {
+        p.classList.remove('active');
+      });
+      var pane = document.getElementById('pane-' + model);
+      if (pane) pane.classList.add('active');
+    }
+  </script>
+</body>
+</html>
