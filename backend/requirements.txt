@@ -1,0 +1,8 @@
+flask
+flask-cors
+python-dotenv
+openai
+anthropic
+google-genai
+gunicorn
+mysql-connector-python
