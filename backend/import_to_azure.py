@@ -5,9 +5,9 @@ Copies your saved benchmark runs from your LOCAL SQLite database
 (benchmark.db) up into the LIVE Azure MySQL database, so the History
 page on the deployed site shows them.
 
-HOW TO RUN (from your PromptArena project folder, where benchmark.db lives):
+HOW TO RUN:
 
-  1. Install the MySQL driver (one time):
+  1. Install the MySQL driver:
          pip install mysql-connector-python
 
   2. Set the 5 connection values as environment variables. In Windows
