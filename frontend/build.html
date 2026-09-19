@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Build a Website · PromptArena</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav>
+    <div class="logo">PromptArena</div>
+    <div class="nav-links">
+      <a href="/" class="">Benchmark</a>
+      <a href="/build.html" class="current">Build</a>
+      <a href="/assist.html" class="">Code Assist</a>
+      <a href="/history.html" class="">History</a>
+      <a href="/about.html" class="">About</a>
+    </div>
+  </nav>
+  <section class="hero">
+    <div class="badge">Build mode</div>
+    <h1>Three models, one <em>website</em></h1>
+    <p>Describe the site once. Each model returns a complete file, rendered live side by side and scored on the same four dimensions as every other run.</p>
+  </section>
+
+  <main>
+    <div class="mode-tabs">
+      <a class="mode-tab " href="/">
+        <span class="mode-tab-num">01</span>
+        <span class="mode-tab-title">Benchmark</span>
+        <span class="mode-tab-blurb">One prompt, three models, two scorers</span>
+      </a>
+      <a class="mode-tab active" href="/build.html">
+        <span class="mode-tab-num">02</span>
+        <span class="mode-tab-title">Build a Website</span>
+        <span class="mode-tab-blurb">Compare rendered sites, not just code</span>
+      </a>
+      <a class="mode-tab " href="/assist.html">
+        <span class="mode-tab-num">03</span>
+        <span class="mode-tab-title">Code Assist</span>
+        <span class="mode-tab-blurb">Explain, debug, test or refactor</span>
+      </a>
+    </div>
+
+    <div class="section-label">Describe your build</div>
+
+    <div class="input-card">
+      <div class="field">
+        <label>What should the site do?</label>
+        <textarea id="buildPrompt" placeholder="e.g. A one-page site for a university STEM outreach programme: hero, three programme cards, funder logos strip and a contact form."></textarea>
+      </div>
+      <div class="field">
+        <label>Stack</label>
+        <select id="buildStack">
+          <option value="a single self-contained HTML file with embedded CSS, no frameworks">Single-file HTML + CSS</option>
+          <option value="a single HTML file using the Tailwind CDN">HTML + Tailwind (CDN)</option>
+          <option value="a Flask Jinja template plus its CSS">Flask template (Jinja)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tone</label>
+        <select id="buildTone">
+          <option>Editorial / academic</option>
+          <option>Minimal</option>
+          <option>Bold and colourful</option>
+          <option>Corporate</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Requirements</label>
+        <div class="chip-row" id="buildFlags">
+          <button type="button" class="chip active" data-flag="responsive down to 375px">Responsive</button>
+          <button type="button" class="chip active" data-flag="semantic HTML landmarks">Semantic HTML</button>
+          <button type="button" class="chip active" data-flag="labelled, accessible form inputs">Accessible forms</button>
+          <button type="button" class="chip" data-flag="WCAG AA colour contrast">WCAG AA contrast</button>
+          <button type="button" class="chip" data-flag="dark mode support">Dark mode</button>
+        </div>
+      </div>
+      <button id="buildBtn" onclick="runBuild()">Build three versions</button>
+      <div class="panel-note">Each model returns a complete single file. Previews are rendered live in a sandboxed frame, and the run is saved to your history like any other benchmark.</div>
+    </div>
+
+    <div id="buildLoading" style="display:none;">
+      <div class="loading-inner">
+        <div class="spinner"></div>
+        <p>Building with all three models. This may take a moment</p>
+      </div>
+    </div>
+
+    <div id="buildResults" style="display:none;">
+      <div class="resp-head" style="margin-top:48px;">
+        <div class="section-label" style="margin-bottom:0;">Rendered previews</div>
+        <div class="viewport-row" style="margin-bottom:0;">
+          <button type="button" class="chip active" data-vp="desktop" onclick="setViewport('desktop')">Desktop</button>
+          <button type="button" class="chip" data-vp="mobile" onclick="setViewport('mobile')">Mobile</button>
+        </div>
+      </div>
+
+      <div class="preview-grid" id="previewGrid"></div>
+
+      <div class="verdict">
+        <div class="verdict-label">Judge verdict</div>
+        <div class="verdict-text" id="buildVerdict"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:48px;">Scores</div>
+      <table>
+        <thead><tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+        <tbody id="buildScoreBody"></tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:40px;">LLM-as-Judge breakdown</div>
+      <table>
+        <thead><tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+        <tbody id="buildJudgeBody"></tbody>
+      </table>
+
+      <div class="charts-grid" style="margin-top:28px;">
+        <div class="chart-card">
+          <div class="chart-title">Rule-based scores</div>
+          <div class="chart-subtitle">Deterministic. The same response always produces the same score.</div>
+          <div class="chart-legend">
+            <span><i style="background:#12866b"></i>ChatGPT</span>
+            <span><i style="background:#c2612f"></i>Claude</span>
+            <span><i style="background:#3c6bb5"></i>Gemini</span>
+          </div>
+          <canvas id="chartRule"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">LLM-as-Judge scores</div>
+          <div class="chart-subtitle">A fixed judge model at temperature 0, applied equally to all three builds.</div>
+          <div class="chart-legend">
+            <span><i style="background:#12866b"></i>ChatGPT</span>
+            <span><i style="background:#c2612f"></i>Claude</span>
+            <span><i style="background:#3c6bb5"></i>Gemini</span>
+          </div>
+          <canvas id="chartJudge"></canvas>
+        </div>
+        <div class="chart-card chart-card--wide">
+          <div class="chart-title">Response time</div>
+          <div class="chart-subtitle">Milliseconds, lower is better</div>
+          <canvas id="chartTime"></canvas>
+        </div>
+      </div>
+
+      <div class="resp-head" style="margin-top:48px;">
+        <div class="section-label" style="margin-bottom:0;">Generated code</div>
+      </div>
+      <div class="resp-tabs" id="buildTabs">
+        <button type="button" class="resp-tab active" data-model="openai" onclick="showBuildCode('openai')">ChatGPT<span class="tab-score" id="buildTabs-openai"></span></button>
+        <button type="button" class="resp-tab" data-model="claude" onclick="showBuildCode('claude')">Claude<span class="tab-score" id="buildTabs-claude"></span></button>
+        <button type="button" class="resp-tab" data-model="gemini" onclick="showBuildCode('gemini')">Gemini<span class="tab-score" id="buildTabs-gemini"></span></button>
+      </div>
+      <div id="buildCodeList"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>PromptArena &#124; AI Benchmark Tool</p>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/sidebar.js"></script>
+  <script src="/script.js"></script>
+  <script src="/build.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code Assist · PromptArena</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav>
+    <div class="logo">PromptArena</div>
+    <div class="nav-links">
+      <a href="/" class="">Benchmark</a>
+      <a href="/build.html" class="">Build</a>
+      <a href="/assist.html" class="current">Code Assist</a>
+      <a href="/history.html" class="">History</a>
+      <a href="/about.html" class="">About</a>
+    </div>
+  </nav>
+  <section class="hero">
+    <div class="badge">Code Assist</div>
+    <h1>Debug with all three, keep the <em>best answer</em></h1>
+    <p>Paste your code, pick a task, and compare how ChatGPT, Claude and Gemini handle it, scored with the same rubric as every other run.</p>
+  </section>
+
+  <main>
+    <div class="mode-tabs">
+      <a class="mode-tab " href="/">
+        <span class="mode-tab-num">01</span>
+        <span class="mode-tab-title">Benchmark</span>
+        <span class="mode-tab-blurb">One prompt, three models, two scorers</span>
+      </a>
+      <a class="mode-tab " href="/build.html">
+        <span class="mode-tab-num">02</span>
+        <span class="mode-tab-title">Build a Website</span>
+        <span class="mode-tab-blurb">Compare rendered sites, not just code</span>
+      </a>
+      <a class="mode-tab active" href="/assist.html">
+        <span class="mode-tab-num">03</span>
+        <span class="mode-tab-title">Code Assist</span>
+        <span class="mode-tab-blurb">Explain, debug, test or refactor</span>
+      </a>
+    </div>
+
+    <div class="section-label">Coding session</div>
+
+    <div class="input-card">
+      <div class="field">
+        <label>What do you need?</label>
+        <div class="chip-row" id="assistTasks">
+          <button type="button" class="chip active" data-task="Explain this code clearly, step by step.">Explain this code</button>
+          <button type="button" class="chip" data-task="Find the bug in this code and give a corrected version with a short explanation.">Find the bug</button>
+          <button type="button" class="chip" data-task="Write unit tests for this code using pytest.">Write tests</button>
+          <button type="button" class="chip" data-task="Refactor this code for readability and performance, keeping behaviour identical.">Refactor</button>
+          <button type="button" class="chip" data-task="Review this code for security and error-handling problems.">Security review</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="assistLang">
+          <option>Python</option><option>JavaScript</option><option>SQL</option>
+          <option>HTML / CSS</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Your code</label>
+        <textarea id="assistCode" class="code-input" placeholder="Paste your code here..."></textarea>
+      </div>
+      <div class="field">
+        <label>Extra context (optional)</label>
+        <textarea id="assistNotes" style="height:80px" placeholder="e.g. this runs inside a Flask route and times out on large batches"></textarea>
+      </div>
+      <button id="assistBtn" onclick="runAssist()">Ask all three</button>
+      <div class="panel-note">Your code is sent to all three models with the same instruction, then scored on the same four dimensions. The run is saved to your history.</div>
+    </div>
+
+    <div id="assistLoading" style="display:none;">
+      <div class="loading-inner">
+        <div class="spinner"></div>
+        <p>Querying all three models. This may take a moment</p>
+      </div>
+    </div>
+
+    <div id="assistResults" style="display:none;">
+      <div class="resp-head" style="margin-top:48px;">
+        <div class="section-label" style="margin-bottom:0;">Answers</div>
+      </div>
+
+      <div class="resp-tabs" id="assistTabs">
+        <button type="button" class="resp-tab active" data-model="openai" onclick="showAssistAnswer('openai')">ChatGPT<span class="tab-score" id="assistTabs-openai"></span></button>
+        <button type="button" class="resp-tab" data-model="claude" onclick="showAssistAnswer('claude')">Claude<span class="tab-score" id="assistTabs-claude"></span></button>
+        <button type="button" class="resp-tab" data-model="gemini" onclick="showAssistAnswer('gemini')">Gemini<span class="tab-score" id="assistTabs-gemini"></span></button>
+      </div>
+      <div id="fixList"></div>
+
+      <div class="verdict">
+        <div class="verdict-label">Diagnosis</div>
+        <div class="verdict-text" id="assistVerdict"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:48px;">Scores</div>
+      <table>
+        <thead><tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+        <tbody id="assistScoreBody"></tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:40px;">LLM-as-Judge breakdown</div>
+      <table>
+        <thead><tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+        <tbody id="assistJudgeBody"></tbody>
+      </table>
+
+      <div class="charts-grid" style="margin-top:28px;">
+        <div class="chart-card">
+          <div class="chart-title">Rule-based scores</div>
+          <div class="chart-subtitle">Deterministic. The same response always produces the same score.</div>
+          <div class="chart-legend">
+            <span><i style="background:#12866b"></i>ChatGPT</span>
+            <span><i style="background:#c2612f"></i>Claude</span>
+            <span><i style="background:#3c6bb5"></i>Gemini</span>
+          </div>
+          <canvas id="chartRule"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">LLM-as-Judge scores</div>
+          <div class="chart-subtitle">A fixed judge model at temperature 0, applied equally to all three answers.</div>
+          <div class="chart-legend">
+            <span><i style="background:#12866b"></i>ChatGPT</span>
+            <span><i style="background:#c2612f"></i>Claude</span>
+            <span><i style="background:#3c6bb5"></i>Gemini</span>
+          </div>
+          <canvas id="chartJudge"></canvas>
+        </div>
+        <div class="chart-card chart-card--wide">
+          <div class="chart-title">Response time</div>
+          <div class="chart-subtitle">Milliseconds, lower is better</div>
+          <canvas id="chartTime"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>PromptArena &#124; AI Benchmark Tool</p>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/sidebar.js"></script>
+  <script src="/script.js"></script>
+  <script src="/assist.js"></script>
+</body>
+</html>
