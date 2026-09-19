@@ -1,36 +1,3 @@
-"""
-sync_to_azure.py
-----------------
-Makes the LIVE Azure MySQL database an EXACT COPY of your local
-benchmark.db. Use this after you've changed the app (e.g. added the
-LLM-as-Judge columns) and want the live site to show your latest data.
-
-Unlike the old import script, this one:
-  * reads your columns automatically, so it works with the new judge
-    columns without you editing anything;
-  * REPLACES the cloud data instead of adding to it, so you never get
-    duplicates no matter how many times you run it.
-
-Your laptop's benchmark.db is always the master copy. This script only
-ever changes the cloud copy, never your local one.
-
-BEFORE YOU RUN:
-  1. Make sure your LATEST app image is deployed to Azure first, so the
-     cloud database already has the new columns (the app adds them on
-     startup). If the script warns that local columns are "missing in
-     the cloud", stop and deploy your new image, then re-run.
-  2. In the SAME terminal, set the five connection values (same as the
-     import step). In Windows PowerShell:
-         $env:DB_HOST     = "promptarena-db.mysql.database.azure.com"
-         $env:DB_USER     = "<your username>"
-         $env:DB_PASSWORD = "<your password>"
-         $env:DB_NAME     = "<your database name>"
-         $env:DB_PORT     = "3306"
-
-RUN IT (from your backend folder, where benchmark.db lives):
-    python sync_to_azure.py
-"""
-
 import os
 import sqlite3
 import sys
