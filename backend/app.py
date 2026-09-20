@@ -14,17 +14,9 @@ app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app)
 
 # ── LLM judge configuration ───────────────────────────────
-# One fixed model acts as the judge for ALL three answers, applied uniformly.
-# It is set here so it can be changed in one place and documented in the write-up.
-# Note the known limitation: when the judge model is also one of the contestants
-# (gpt-4o here), self-preference bias is possible. This is applied consistently
-# to every model and acknowledged as a limitation. A leave-one-out design is
-# discussed as future work.
+
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "gpt-4o")
 
-# The four dimensions and their weights are UNCHANGED from the rule-based engine.
-# The LLM only supplies the four sub-scores; this code still does the weighted sum,
-# so the framework remains the project's own contribution.
 W_SUBSTANCE, W_COMPLETENESS, W_CLARITY, W_RELIABILITY = 0.35, 0.20, 0.25, 0.20
 
 JUDGE_SYSTEM_PROMPT = (
