@@ -6,6 +6,9 @@
   <title>PromptArena History</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/sidebar.js"></script>
 </head>
 <body>
 
@@ -13,24 +16,27 @@
     <div class="logo">PromptArena</div>
     <div class="nav-links">
       <a href="/">Benchmark</a>
-      <a href="/history.html" style="color:#1a1008;">History</a>
+      <a href="/build.html">Build</a>
+      <a href="/assist.html">Code Assist</a>
+      <a href="/history.html" class="current">History</a>
       <a href="/about.html">About</a>
     </div>
   </nav>
 
-  <section class="hero" style="padding:50px 24px 40px;">
-    <div class="badge">Benchmark History</div>
-    <div class="hero-logo" style="font-size:3.5rem;">Past Results</div>
-    <p>All your saved benchmark runs: review, compare and export.</p>
+  <section class="hero">
+    <div class="badge">Benchmark history</div>
+    <h1>Every run, kept and <em>comparable</em></h1>
+    <p>All your saved benchmark runs, with both scorers side by side. Review, export to CSV, or print any single run as a PDF.</p>
     <div class="hero-btns">
-      <button onclick="exportCSV()">Export as CSV →</button>
+      <button onclick="downloadReport()">Download Report</button>
+      <button class="outline" onclick="exportCSV()">Export CSV</button>
       <button class="outline" onclick="window.location.href='/'">New Benchmark</button>
     </div>
   </section>
 
   <main>
 
-    <div id="stats-row" style="display:none; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px;"></div>
+    <div id="stats-row" style="display:none; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px;"></div>
 
     <div class="section-label">All benchmark runs</div>
 
@@ -44,7 +50,7 @@
         <p style="font-size:1.1rem; margin-bottom:8px;">No benchmarks yet</p>
         <p style="font-size:0.85rem;">Run your first benchmark to see results here.</p>
         <br/>
-        <button onclick="window.location.href='/'" style="margin-top:8px;">Run a Benchmark</button>
+        <button class="primary" onclick="window.location.href='/'" style="margin-top:8px;">Run a Benchmark</button>
       </div>
       <div id="history-list"></div>
     </div>
@@ -52,154 +58,190 @@
   </main>
 
   <footer>
-    <p>PromptArena &mdash; AI Benchmark Tool</p>
+    <p>PromptArena &#124; AI Benchmark Tool</p>
   </footer>
 
   <script>
+    
     let historyData = [];
+
+    /* Safely read a model's stored LLM detail JSON, e.g. llmDetail(row, "openai"). */
+    function llmDetail(row, model) {
+      const raw = row[model + "_llm_detail"];
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch (e) { return null; }
+    }
+
+    /* Short, honest "why it won": the rule-based winner (score only, no invented
+       reasons) plus the LLM-as-Judge winner with its REAL saved justification. */
+    function winnerSummary(row) {
+      const rule = { ChatGPT: row.openai_score||0, Claude: row.claude_score||0, Gemini: row.gemini_score||0 };
+      const ruleWin = Object.keys(rule).reduce((a,b) => rule[b] > rule[a] ? b : a);
+      let out = "Rule-based: " + ruleWin + " (" + rule[ruleWin] + "/100).";
+
+      const llm = { ChatGPT: row.openai_llm_score, Claude: row.claude_llm_score, Gemini: row.gemini_llm_score };
+      const hasLLM = Object.keys(llm).some(k => llm[k] !== null && llm[k] !== undefined);
+      if (!hasLLM) return out + " LLM-as-Judge: not scored yet.";
+
+      const val = (k) => (llm[k] === null || llm[k] === undefined) ? -1 : llm[k];
+      const llmWin = Object.keys(llm).reduce((a,b) => val(b) > val(a) ? b : a);
+      const modelKey = llmWin === "ChatGPT" ? "openai" : llmWin === "Claude" ? "claude" : "gemini";
+      const det = llmDetail(row, modelKey);
+      let just = (det && det.justification) ? det.justification : "";
+      if (just.length > 200) just = just.slice(0, 197).trim() + "...";
+      out += " LLM-as-Judge: " + llmWin + " (" + val(llmWin) + "/100)" + (just ? " \u2014 " + just : ".");
+      return out;
+    }
 
     async function loadHistory() {
       const loadingEl   = document.getElementById("loading-history");
       const containerEl = document.getElementById("history-container");
       const emptyEl     = document.getElementById("empty-state");
-
       try {
         const res = await fetch(`${BACKEND}/history`);
         if (!res.ok) throw new Error("Server error");
-
         historyData = await res.json();
         loadingEl.style.display   = "none";
         containerEl.style.display = "block";
-
-        if (historyData.length === 0) {
-          emptyEl.style.display = "block";
-          return;
-        }
-
+        if (historyData.length === 0) { emptyEl.style.display = "block"; return; }
         renderStats(historyData);
         renderHistory(historyData);
-
       } catch (err) {
-        loadingEl.innerHTML = `<p style='color:#a09080;font-size:0.88rem;'>Could not connect to Flask. Make sure it is running at <strong>http://127.0.0.1:5000</strong></p>`;
+        loadingEl.innerHTML = "<p style='color:#a09080;font-size:0.88rem;'>Could not connect to the server. Please try again shortly.</p>";
       }
     }
 
     function escapeHtml(s) {
       if (s == null) return "";
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }
 
     function renderStats(data) {
-      const statsRow  = document.getElementById("stats-row");
+      const statsRow = document.getElementById("stats-row");
       statsRow.style.display = "grid";
-      const totalRuns = data.length;
-      const avgOpenAI = Math.round(data.reduce((s,r) => s + (r.openai_time||0), 0) / data.length);
-      const avgClaude = Math.round(data.reduce((s,r) => s + (r.claude_time||0), 0) / data.length);
-      const winCounts = { ChatGPT: 0, Claude: 0, Gemini: 0 };
+      const avgOpenAI = Math.round(data.reduce((s,r)=>s+(r.openai_time||0),0)/data.length);
+      const avgClaude = Math.round(data.reduce((s,r)=>s+(r.claude_time||0),0)/data.length);
+      const winCounts = { ChatGPT:0, Claude:0, Gemini:0 };
       data.forEach(r => { const w = getWinner(r); if (w) winCounts[w]++; });
-      const topModel  = Object.keys(winCounts).reduce((a,b) => winCounts[a] > winCounts[b] ? a : b);
-      statsRow.innerHTML = `
-        ${statCard("Total Runs", totalRuns)}
-        ${statCard("Avg ChatGPT", avgOpenAI + "ms")}
-        ${statCard("Avg Claude", avgClaude + "ms")}
-        ${statCard("Top Model", topModel)}
-      `;
+      const topModel = Object.keys(winCounts).reduce((a,b)=>winCounts[a]>winCounts[b]?a:b);
+      statsRow.innerHTML =
+        statCard("Total Runs", data.length) +
+        statCard("Avg ChatGPT", avgOpenAI + "ms") +
+        statCard("Avg Claude", avgClaude + "ms") +
+        statCard("Top Model", topModel);
     }
 
     function statCard(label, value) {
-      return `
-        <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:20px;text-align:center;">
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">${label}</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#1a1008;font-weight:700;">${value}</div>
-        </div>
-      `;
+      return `<div class="stat-card">
+        <div class="stat-label">${label}</div>
+        <div class="stat-value">${value}</div></div>`;
     }
 
-    /* Builds an explainable, signal-based reason for the winner.
-       Reads the actual response text to measure verifiability and usefulness
-       signals (links, table structure, deadlines, funder count, uncertainty
-       flagging) rather than relying on score alone. Fully reproducible - no
-       AI judgement involved. */
+    /* Category-aware winner explanation.
+       Rule-based and fully reproducible - no AI judgement involved. */
     function buildWinnerReason(row) {
+      const cat = (row.category || "").toLowerCase();
+
       const models = [
-        { name: "ChatGPT", score: row.openai_score||0, resp: row.openai_response||"" },
-        { name: "Claude",  score: row.claude_score||0, resp: row.claude_response||"" },
-        { name: "Gemini",  score: row.gemini_score||0, resp: row.gemini_response||"" },
+        { name:"ChatGPT", score:row.openai_score||0, resp:row.openai_response||"" },
+        { name:"Claude",  score:row.claude_score||0, resp:row.claude_response||"" },
+        { name:"Gemini",  score:row.gemini_score||0, resp:row.gemini_response||"" }
       ];
 
-      // Measure content signals for each response
       models.forEach(m => {
-        const t = m.resp.toLowerCase();
-
-        // 1. Verifiable links (http/www/.org/.ac.uk etc)
-        m.links = (m.resp.match(/https?:\/\/|www\.|\.org|\.ac\.uk|\.co\.uk|\.com/gi) || []).length;
-
-        // 2. Table structure (markdown pipes or clear column layout)
-        m.hasTable = (m.resp.match(/\|/g) || []).length >= 4;
-
-        // 3. Specific deadlines / dates mentioned
-        m.deadlines = (m.resp.match(/\b(deadline|closing|closes|20\d\d|january|february|march|april|may|june|july|august|september|october|november|december|rolling)\b/gi) || []).length;
-
-        // 4. Grant amounts (£ figures)
-        m.amounts = (m.resp.match(/£[\d,]+/g) || []).length;
-
-        // 5. Distinct funders named (rough proxy: "trust", "foundation", "fund")
-        m.funders = (m.resp.match(/\b(trust|foundation|fund|charity|charitable)\b/gi) || []).length;
-
-        // 6. Honesty / uncertainty flagging (good — it admits what to verify)
-        m.flagsUncertainty = /\b(verify|check|may (be|have)|approximate|not certain|confirm|please note|as of)\b/i.test(m.resp);
+        const r = m.resp;
+        m.links      = (r.match(/https?:\/\/|www\.|\.org|\.ac\.uk|\.co\.uk/gi)||[]).length;
+        m.hasTable   = (r.match(/\|/g)||[]).length >= 4;
+        m.dates      = (r.match(/\b(deadline|closing|closes|rolling|20\d\d)\b/gi)||[]).length;
+        m.amounts    = (r.match(/£[\d,]+|GBP\s?[\d,]+/g)||[]).length;
+        m.codeBlocks = (r.match(/```/g)||[]).length / 2;
+        m.hasSQL     = /\b(SELECT|INSERT|UPDATE|CREATE TABLE|JOIN)\b/i.test(r);
+        m.hasHTML    = /<html|<div|<body|<section/i.test(r);
+        m.hasCSS     = /\{[^}]*:[^}]*;[^}]*\}/.test(r) || /@media|display:\s*(flex|grid)/i.test(r);
+        m.hasSteps   = /\b(step 1|first,|1\.|firstly)\b/i.test(r);
+        m.hasHeads   = (r.match(/^#{1,3}\s/gm)||[]).length;
+        m.comments   = (r.match(/\/\/|#\s|\/\*/g)||[]).length;
+        m.words      = r.split(/\s+/).filter(Boolean).length;
       });
 
-      const winner   = models.reduce((a,b) => b.score > a.score ? b : a);
-      const others   = models.filter(m => m.name !== winner.name);
-      const runnerUp = others.reduce((a,b) => b.score > a.score ? b : a);
+      const winner   = models.reduce((a,b)=>b.score>=a.score?b:a);
+      const others   = models.filter(m=>m.name!==winner.name);
+      const runnerUp = others.reduce((a,b)=>b.score>a.score?b:a);
+      const margin   = winner.score - runnerUp.score;
 
       const reasons = [];
+      let caveat = "";
 
-      // Lead with the strongest content signal, not the raw score
-      if (winner.links > 0) {
-        reasons.push(`included ${winner.links} verifiable link${winner.links === 1 ? "" : "s"} (more sources to check)`);
-      }
-      if (winner.hasTable) {
-        reasons.push(`presented results in a structured table`);
-      }
-      if (winner.deadlines > 0) {
-        reasons.push(`specified ${winner.deadlines} deadline${winner.deadlines === 1 ? "" : "s"}/date${winner.deadlines === 1 ? "" : "s"}`);
-      }
-      if (winner.amounts > 0) {
-        reasons.push(`gave ${winner.amounts} grant amount${winner.amounts === 1 ? "" : "s"}`);
-      }
-      if (winner.flagsUncertainty) {
-        reasons.push(`flagged which details to verify (honest about limitations)`);
-      }
+      if (cat.indexOf("funding") !== -1) {
+        if (winner.links > 0)   reasons.push("included " + winner.links + " verifiable link" + (winner.links===1?"":"s"));
+        if (winner.hasTable)    reasons.push("presented findings in a structured table");
+        if (winner.dates > 0)   reasons.push("specified " + winner.dates + " deadline" + (winner.dates===1?"":"s") + " or date" + (winner.dates===1?"":"s"));
+        if (winner.amounts > 0) reasons.push("gave " + winner.amounts + " grant amount" + (winner.amounts===1?"":"s"));
+        caveat = " Always confirm funder details independently, as these models generate from training data and cannot access live sources.";
 
-      // Always close with the score margin so it's still grounded in the metrics
-      const margin = winner.score - runnerUp.score;
-      const scoreNote = margin > 0
-        ? `overall it scored ${winner.score}/100, ${margin} ahead of ${runnerUp.name}`
-        : `it tied on quality score (${winner.score}/100) and led on content signals`;
+      } else if (cat.indexOf("coding") !== -1) {
+        if (winner.codeBlocks >= 1) reasons.push("provided " + Math.round(winner.codeBlocks) + " formatted code block" + (winner.codeBlocks===1?"":"s"));
+        if (winner.comments > 3)    reasons.push("included inline comments explaining the logic");
+        if (winner.hasSteps)        reasons.push("walked through the approach step by step");
+        if (winner.hasHeads > 0)    reasons.push("organised the answer with clear headings");
+        caveat = " Run the code yourself to confirm it works, as the score measures structure rather than correctness.";
 
-      let body;
-      if (reasons.length) {
-        body = `gave the most usable, verifiable response it ${reasons.join(", ")}. ${scoreNote}`;
+      } else if (cat.indexOf("database") !== -1) {
+        if (winner.hasSQL)          reasons.push("produced executable SQL");
+        if (winner.codeBlocks >= 1) reasons.push("formatted " + Math.round(winner.codeBlocks) + " query block" + (winner.codeBlocks===1?"":"s") + " clearly");
+        if (winner.hasSteps)        reasons.push("explained the query logic in sequence");
+        if (winner.hasTable)        reasons.push("illustrated the schema or results in a table");
+        caveat = " Test the queries against real data, as the score does not verify they return correct results.";
+
+      } else if (cat.indexOf("website") !== -1) {
+        if (winner.hasHTML)         reasons.push("produced complete HTML markup");
+        if (winner.hasCSS)          reasons.push("included working CSS styling");
+        if (winner.codeBlocks >= 1) reasons.push("separated code into " + Math.round(winner.codeBlocks) + " block" + (winner.codeBlocks===1?"":"s"));
+        if (winner.hasHeads > 0)    reasons.push("structured the answer with headings");
+        caveat = " Open the code in a browser to confirm it renders as intended.";
+
+      } else if (cat.indexOf("reasoning") !== -1) {
+        if (winner.hasSteps)     reasons.push("set out its reasoning step by step");
+        if (winner.hasHeads > 0) reasons.push("organised the argument with clear headings");
+        if (winner.words > 200)  reasons.push("worked through the problem in depth");
+        if (winner.hasTable)     reasons.push("summarised the comparison in a table");
+        caveat = " Check the logic yourself, as a confident answer is not necessarily a correct one.";
+
+      } else if (cat.indexOf("creative") !== -1) {
+        if (winner.words > 150)  reasons.push("developed the piece fully");
+        if (winner.hasHeads > 0) reasons.push("gave the writing clear structure");
+        if (winner.hasSteps)     reasons.push("organised the response into distinct parts");
+        caveat = " Quality of writing is subjective, so the score reflects structure rather than style.";
+
       } else {
-        body = `scored highest overall (${winner.score}/100). Note: this response was light on links, tables and deadlines, so verify its funders manually`;
+        if (winner.hasHeads > 0) reasons.push("organised the answer with clear headings");
+        if (winner.hasTable)     reasons.push("presented information in a table");
+        if (winner.hasSteps)     reasons.push("explained the answer in a logical sequence");
+        if (winner.words > 200)  reasons.push("gave a detailed response");
+        caveat = " The score measures how well-presented an answer is, not whether it is factually correct.";
       }
 
-      return `${winner.name} won ${body}. Always confirm funder details independently, as AI models cannot access live data.`;
+      const scoreNote = margin > 0
+        ? "Overall it scored " + winner.score + "/100, " + margin + " ahead of " + runnerUp.name + "."
+        : "It tied on score (" + winner.score + "/100) and led on content signals.";
+
+      const body = reasons.length
+        ? "It " + reasons.join(", ") + ". " + scoreNote
+        : "It scored highest overall (" + winner.score + "/100), though it showed few distinguishing content signals for this task type.";
+
+      return winner.name + " won. " + body + caveat;
     }
 
+    /* Cards render immediately; responses are parsed only when a tab is clicked. */
     function renderHistory(data) {
       const container = document.getElementById("history-list");
       container.innerHTML = "";
       data.forEach(row => {
         const winner = getWinner(row);
-        const reason = buildWinnerReason(row);
+        const reason = winnerSummary(row);
         const card   = document.createElement("div");
         card.className = "history-card";
+        card.id = "run-" + row.id;
         card.innerHTML = `
           <div class="history-card-head">
             <div class="history-head-text">
@@ -207,62 +249,135 @@
               <div class="history-prompt">${escapeHtml(row.prompt)}</div>
             </div>
             <div class="history-actions">
-              ${winner ? `<span class="history-winner">Winner: ${winner}</span>` : ""}
+              ${winner ? '<span class="history-winner">Winner: ' + winner + '</span>' : ""}
+              <button class="pdf-btn" onclick="downloadRun(${row.id})">Download PDF</button>
               <button class="history-delete" onclick="deleteRecord(${row.id})">Delete</button>
             </div>
           </div>
 
           <div class="history-scores">
-            ${scoreStrip("ChatGPT", row.openai_time, row.openai_tokens, row.openai_score, winner === "ChatGPT")}
-            ${scoreStrip("Claude",  row.claude_time,  row.claude_tokens,  row.claude_score,  winner === "Claude")}
-            ${scoreStrip("Gemini",  row.gemini_time,  row.gemini_tokens,  row.gemini_score,  winner === "Gemini")}
+            ${scoreStrip("ChatGPT", row.openai_time, row.openai_tokens, row.openai_score, winner === "ChatGPT", row.openai_llm_score)}
+            ${scoreStrip("Claude",  row.claude_time,  row.claude_tokens,  row.claude_score,  winner === "Claude",  row.claude_llm_score)}
+            ${scoreStrip("Gemini",  row.gemini_time,  row.gemini_tokens,  row.gemini_score,  winner === "Gemini",  row.gemini_llm_score)}
+          </div>
+
+          <div class="run-chart-wrap">
+            <div class="run-chart-title">Rule score vs LLM-as-Judge</div>
+            <canvas class="run-chart" id="runchart-${row.id}" height="150"></canvas>
           </div>
 
           <div class="winner-reason">
-            <span class="winner-reason-label">Why it won</span>
+            <span class="winner-reason-label">Verdict</span>
             <span class="winner-reason-text">${escapeHtml(reason)}</span>
           </div>
 
           <div class="history-responses" data-run="${row.id}">
             <div class="resp-tabs">
-              <button class="resp-tab active" data-tab="openai" onclick="switchHistoryTab(${row.id},'openai')">ChatGPT</button>
+              <button class="resp-tab" data-tab="openai" onclick="switchHistoryTab(${row.id},'openai')">ChatGPT</button>
               <button class="resp-tab" data-tab="claude" onclick="switchHistoryTab(${row.id},'claude')">Claude</button>
               <button class="resp-tab" data-tab="gemini" onclick="switchHistoryTab(${row.id},'gemini')">Gemini</button>
             </div>
-           <div class="resp-panel active" data-pane="openai">
-              <div class="history-response">${row.openai_response ? marked.parse(row.openai_response) : "No response recorded"}</div>
+            <div class="resp-panel active" data-pane="hint">
+              <div style="padding:14px;color:#a09080;font-size:0.85rem;font-style:italic;">
+                Select a model above to view its response.
+              </div>
             </div>
-            <div class="resp-panel" data-pane="claude">
-              <div class="history-response">${row.claude_response ? marked.parse(row.claude_response) : "No response recorded"}</div>
+            <div class="resp-panel" data-pane="openai" data-loaded="false">
+              <div class="history-response"></div>
             </div>
-            <div class="resp-panel" data-pane="gemini">
-              <div class="history-response">${row.gemini_response ? marked.parse(row.gemini_response) : "No response recorded"}</div>
+            <div class="resp-panel" data-pane="claude" data-loaded="false">
+              <div class="history-response"></div>
             </div>
-          </div>
-        `;
+            <div class="resp-panel" data-pane="gemini" data-loaded="false">
+              <div class="history-response"></div>
+            </div>
+          </div>`;
         container.appendChild(card);
+      });
+      renderRunCharts(data);
+    }
+
+    /* One small grouped bar chart per run: rule score against judge score. */
+    const runCharts = {};
+    function renderRunCharts(data) {
+      if (typeof Chart === "undefined") return;
+      data.forEach(row => {
+        const el = document.getElementById("runchart-" + row.id);
+        if (!el) return;
+        const rule  = [row.openai_score || 0, row.claude_score || 0, row.gemini_score || 0];
+        const judge = [row.openai_llm_score || 0, row.claude_llm_score || 0, row.gemini_llm_score || 0];
+        if (runCharts[row.id]) runCharts[row.id].destroy();
+        runCharts[row.id] = new Chart(el, {
+          type: "bar",
+          data: {
+            labels: ["ChatGPT", "Claude", "Gemini"],
+            datasets: [
+              { label: "Rule-based", data: rule,
+                backgroundColor: ["#12866b", "#c2612f", "#3c6bb5"],
+                borderRadius: 6, borderSkipped: false, barPercentage: 0.8, categoryPercentage: 0.7 },
+              { label: "LLM-as-Judge", data: judge,
+                backgroundColor: ["rgba(18,134,107,0.42)", "rgba(194,97,47,0.42)", "rgba(60,107,181,0.42)"],
+                borderRadius: 6, borderSkipped: false, barPercentage: 0.8, categoryPercentage: 0.7 }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { display: true, position: "top", align: "end",
+                labels: { boxWidth: 12, boxHeight: 12, font: { family: "'Inter', sans-serif", size: 12 }, color: "#4a3a2a" } },
+              tooltip: { backgroundColor: "#1a1008", padding: 10, cornerRadius: 8 }
+            },
+            scales: {
+              x: { grid: { display: false }, border: { display: false },
+                   ticks: { color: "#1a1008", font: { family: "'Inter', sans-serif", size: 13, weight: "600" } } },
+              y: { beginAtZero: true, max: 100, grid: { color: "#e7ddce" }, border: { display: false },
+                   ticks: { stepSize: 25, color: "#7a6a58", font: { family: "'Inter', sans-serif", size: 11 } } }
+            }
+          }
+        });
       });
     }
 
-    function scoreStrip(name, time, tokens, score, isWin) {
-      return `
-        <div class="score-cell ${isWin ? "score-cell--win" : ""}">
-          <div class="score-name">${name}</div>
-          <div class="score-vals">${time||0} ms &nbsp;&middot;&nbsp; ${tokens||"N/A"} tok &nbsp;&middot;&nbsp; <span class="score-pts">${score||0}/100</span></div>
-        </div>
-      `;
+    function scoreStrip(name, time, tokens, score, isWin, llmScore) {
+      const llm = (llmScore === null || llmScore === undefined) ? "&mdash;" : (llmScore + "/100");
+      return `<div class="score-cell ${isWin ? "score-cell--win" : ""}">
+        <div class="score-name">${name}</div>
+        <div class="score-vals">${time||0} ms &nbsp;&middot;&nbsp; ${tokens||"N/A"} tok</div>
+        <div class="score-vals">Rule: <span class="score-pts">${score||0}/100</span> &nbsp;&middot;&nbsp; LLM-as-Judge: <span class="score-pts">${llm}</span></div>
+      </div>`;
     }
 
     function switchHistoryTab(id, model) {
-      const wrap = document.querySelector(`.history-responses[data-run="${id}"]`);
+      const wrap = document.querySelector('.history-responses[data-run="' + id + '"]');
       if (!wrap) return;
+
+      const pane = wrap.querySelector('.resp-panel[data-pane="' + model + '"]');
+      if (!pane) return;
+
+      if (pane.dataset.loaded === "false") {
+        const row = historyData.find(r => r.id === id);
+        const key = model === "openai" ? "openai_response"
+                  : model === "claude" ? "claude_response"
+                  : "gemini_response";
+        const text = row ? row[key] : null;
+        const box  = pane.querySelector(".history-response");
+        if (text) {
+          try { box.innerHTML = marked.parse(text); }
+          catch (e) { box.textContent = text; }
+        } else {
+          box.textContent = "No response recorded";
+        }
+        pane.dataset.loaded = "true";
+      }
+
       wrap.querySelectorAll(".resp-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === model));
-      wrap.querySelectorAll(".resp-panel").forEach(p => p.classList.toggle("active", p.dataset.pane === model));
+      wrap.querySelectorAll(".resp-panel").forEach(p => p.classList.remove("active"));
+      pane.classList.add("active");
     }
 
     function getWinner(row) {
-      const scores = { ChatGPT: row.openai_score||0, Claude: row.claude_score||0, Gemini: row.gemini_score||0 };
-      return Object.keys(scores).reduce((a,b) => scores[a] > scores[b] ? a : b);
+      const s = { ChatGPT: row.openai_score||0, Claude: row.claude_score||0, Gemini: row.gemini_score||0 };
+      return Object.keys(s).reduce((a,b)=>s[a]>s[b]?a:b);
     }
 
     async function deleteRecord(id) {
@@ -271,55 +386,194 @@
       loadHistory();
     }
 
+    /* Individual run PDF - includes all three full responses */
+    function downloadRun(id) {
+      const row = historyData.find(r => r.id === id);
+      if (!row) return;
+      const winner = getWinner(row);
+      const reason = winnerSummary(row);
+      const w = window.open("", "_blank");
+      if (!w) { alert("Please allow pop-ups for this site to download the PDF."); return; }
+      w.document.write(`
+        <html><head><title>PromptArena Run ${row.id}</title>
+        <style>
+          body{font-family:Georgia,serif;max-width:800px;margin:30px auto;padding:0 20px;color:#1a1008;line-height:1.6;}
+          h1{font-size:20px;border-bottom:2px solid #1a1008;padding-bottom:8px;}
+          .meta{font-size:12px;color:#7a6a58;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+          .prompt{background:#f5f0e8;padding:14px;border-left:3px solid #1a1008;margin:14px 0;font-size:14px;}
+          .scores{display:flex;gap:10px;margin:14px 0;}
+          .sc{flex:1;border:1px solid #d4c9b8;padding:10px;text-align:center;font-size:12px;}
+          .sc b{display:block;font-size:14px;margin-bottom:4px;}
+          .reason{background:#faf7f3;border:1px solid #d4c9b8;padding:12px;margin:14px 0;font-size:13px;font-style:italic;}
+          h2{font-size:15px;margin-top:24px;border-bottom:1px solid #d4c9b8;padding-bottom:5px;page-break-after:avoid;}
+          .resp{font-size:12.5px;}
+          table{border-collapse:collapse;width:100%;font-size:11px;margin:8px 0;}
+          th,td{border:1px solid #d4c9b8;padding:5px;text-align:left;}
+          th{background:#f5f0e8;}
+          pre{background:#f7f5f0;padding:10px;overflow-x:auto;font-size:11px;white-space:pre-wrap;}
+          code{background:#f7f5f0;padding:2px 4px;font-size:11px;}
+        </style></head><body>
+        <h1>PromptArena, Benchmark Run #${row.id}</h1>
+        <div class="meta">${row.timestamp} &nbsp;&middot;&nbsp; ${row.category} &nbsp;&middot;&nbsp; Winner: ${winner}</div>
+        <div class="prompt"><b>Prompt:</b><br/>${escapeHtml(row.prompt)}</div>
+        <div class="scores">
+          <div class="sc"><b>ChatGPT</b>${row.openai_time||0} ms<br/>${row.openai_tokens||"N/A"} tokens<br/>Rule: ${row.openai_score||0}/100<br/>LLM-as-Judge: ${row.openai_llm_score==null?"&mdash;":row.openai_llm_score+"/100"}</div>
+          <div class="sc"><b>Claude</b>${row.claude_time||0} ms<br/>${row.claude_tokens||"N/A"} tokens<br/>Rule: ${row.claude_score||0}/100<br/>LLM-as-Judge: ${row.claude_llm_score==null?"&mdash;":row.claude_llm_score+"/100"}</div>
+          <div class="sc"><b>Gemini</b>${row.gemini_time||0} ms<br/>${row.gemini_tokens||"N/A"} tokens<br/>Rule: ${row.gemini_score||0}/100<br/>LLM-as-Judge: ${row.gemini_llm_score==null?"&mdash;":row.gemini_llm_score+"/100"}</div>
+        </div>
+        <div class="reason"><b>Verdict:</b> ${escapeHtml(reason)}</div>
+        ${(function(){
+          var parts = [];
+          [["ChatGPT","openai"],["Claude","claude"],["Gemini","gemini"]].forEach(function(m){
+            var det = llmDetail(row, m[1]);
+            if (det && det.justification) {
+              parts.push("<b>" + m[0] + " (LLM-as-Judge " + (det.overall!=null?det.overall+"/100":"") + "):</b> " + escapeHtml(det.justification));
+            }
+          });
+          return parts.length ? '<div class="reason"><b>LLM-as-Judge notes:</b><br/>' + parts.join("<br/>") + '</div>' : "";
+        })()}
+        <h2>ChatGPT Response</h2><div class="resp">${row.openai_response ? marked.parse(row.openai_response) : "No response recorded"}</div>
+        <h2>Claude Response</h2><div class="resp">${row.claude_response ? marked.parse(row.claude_response) : "No response recorded"}</div>
+        <h2>Gemini Response</h2><div class="resp">${row.gemini_response ? marked.parse(row.gemini_response) : "No response recorded"}</div>
+        </body></html>`);
+      w.document.close();
+      setTimeout(function(){ w.print(); }, 500);
+    }
+
+    /* Compact report - summary, category breakdown, and all runs without full responses */
+    function downloadReport() {
+      if (!historyData.length) { alert("No data to export!"); return; }
+      const d = historyData;
+
+      const avg = function(k) { return Math.round(d.reduce(function(s,r){ return s + (r[k]||0); },0) / d.length); };
+      // Average only over rows that actually have the value (LLM scores may be blank until generated)
+      const avgOf = function(k) {
+        const vals = d.map(function(r){ return r[k]; }).filter(function(v){ return v !== null && v !== undefined; });
+        if (!vals.length) return "&mdash;";
+        return Math.round(vals.reduce(function(s,v){ return s + v; }, 0) / vals.length);
+      };
+      const wins = { ChatGPT:0, Claude:0, Gemini:0 };
+      d.forEach(function(r){ wins[getWinner(r)]++; });
+
+      const cats = {};
+      d.forEach(function(r){
+        const c = r.category || "Uncategorised";
+        if (!cats[c]) cats[c] = { n:0, ChatGPT:0, Claude:0, Gemini:0, os:0, cs:0, gs:0 };
+        cats[c].n++;
+        cats[c][getWinner(r)]++;
+        cats[c].os += r.openai_score||0;
+        cats[c].cs += r.claude_score||0;
+        cats[c].gs += r.gemini_score||0;
+      });
+
+      let catRows = "";
+      Object.keys(cats).sort().forEach(function(c){
+        const x = cats[c];
+        catRows += "<tr><td>" + c + "</td><td>" + x.n + "</td><td>" +
+          Math.round(x.os/x.n) + "</td><td>" + Math.round(x.cs/x.n) + "</td><td>" +
+          Math.round(x.gs/x.n) + "</td><td>" + x.ChatGPT + "</td><td>" +
+          x.Claude + "</td><td>" + x.Gemini + "</td></tr>";
+      });
+
+      let runRows = "";
+      d.forEach(function(r){
+        runRows += `<div class="run">
+          <div class="rmeta">Run #${r.id} &middot; ${r.timestamp} &middot; ${r.category} &middot; Winner: ${getWinner(r)}</div>
+          <div class="rprompt">${escapeHtml(r.prompt)}</div>
+          <table class="rsc">
+            <tr><th></th><th>Time (ms)</th><th>Tokens</th><th>Score</th></tr>
+            <tr><td>ChatGPT</td><td>${r.openai_time||0}</td><td>${r.openai_tokens||"N/A"}</td><td>${r.openai_score||0}</td></tr>
+            <tr><td>Claude</td><td>${r.claude_time||0}</td><td>${r.claude_tokens||"N/A"}</td><td>${r.claude_score||0}</td></tr>
+            <tr><td>Gemini</td><td>${r.gemini_time||0}</td><td>${r.gemini_tokens||"N/A"}</td><td>${r.gemini_score||0}</td></tr>
+          </table>
+          <div class="rreason">${escapeHtml(winnerSummary(r))}</div>
+        </div>`;
+      });
+
+      const w = window.open("", "_blank");
+      if (!w) { alert("Please allow pop-ups for this site to download the report."); return; }
+      w.document.write(`
+        <html><head><title>PromptArena Report</title>
+        <style>
+          body{font-family:Georgia,serif;max-width:800px;margin:30px auto;padding:0 20px;color:#1a1008;line-height:1.5;}
+          h1{font-size:22px;border-bottom:2px solid #1a1008;padding-bottom:8px;margin-bottom:4px;}
+          .sub{font-size:12px;color:#7a6a58;margin-bottom:24px;}
+          h2{font-size:16px;margin-top:26px;border-bottom:1px solid #d4c9b8;padding-bottom:5px;}
+          table{border-collapse:collapse;width:100%;font-size:12px;margin:10px 0;}
+          th,td{border:1px solid #d4c9b8;padding:6px 8px;text-align:left;}
+          th{background:#f5f0e8;font-size:11px;text-transform:uppercase;letter-spacing:1px;}
+          .run{border:1px solid #d4c9b8;padding:12px;margin-bottom:12px;page-break-inside:avoid;}
+          .rmeta{font-size:10px;color:#7a6a58;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+          .rprompt{font-size:13px;font-weight:bold;margin-bottom:8px;}
+          .rsc{font-size:11px;margin:6px 0;}
+          .rreason{font-size:11.5px;font-style:italic;color:#3a2e1e;background:#faf7f3;padding:8px;margin-top:6px;}
+        </style></head><body>
+        <h1>PromptArena, Benchmark Report</h1>
+        <div class="sub">Generated ${new Date().toLocaleDateString()} &nbsp;&middot;&nbsp; ${d.length} runs &nbsp;&middot;&nbsp; MSc Dissertation, Aston University</div>
+
+        <h2>Summary</h2>
+        <table>
+          <tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr>
+          <tr><td>Average rule score (/100)</td><td>${avg("openai_score")}</td><td>${avg("claude_score")}</td><td>${avg("gemini_score")}</td></tr>
+          <tr><td>Average LLM-as-Judge score (/100)</td><td>${avgOf("openai_llm_score")}</td><td>${avgOf("claude_llm_score")}</td><td>${avgOf("gemini_llm_score")}</td></tr>
+          <tr><td>Average response time (ms)</td><td>${avg("openai_time")}</td><td>${avg("claude_time")}</td><td>${avg("gemini_time")}</td></tr>
+          <tr><td>Average tokens</td><td>${avg("openai_tokens")}</td><td>${avg("claude_tokens")}</td><td>${avg("gemini_tokens")}</td></tr>
+          <tr><td>Runs won</td><td>${wins.ChatGPT}</td><td>${wins.Claude}</td><td>${wins.Gemini}</td></tr>
+        </table>
+
+        <h2>Breakdown by Category</h2>
+        <table>
+          <tr><th>Category</th><th>Runs</th><th>Avg GPT</th><th>Avg Claude</th><th>Avg Gemini</th><th>GPT wins</th><th>Claude wins</th><th>Gemini wins</th></tr>
+          ${catRows}
+        </table>
+
+        <h2>All Runs</h2>
+        ${runRows}
+        </body></html>`);
+      w.document.close();
+      setTimeout(function(){ w.print(); }, 500);
+    }
+
     function exportCSV() {
-  if (!historyData.length) { alert("No data to export!"); return; }
-
-  const headers = [
-    "Run ID", "Timestamp", "Category", "Prompt",
-    "AI Model", "Response Time (ms)", "Tokens", "Score (/100)", "Response", "Winner", "Why it won"
-  ];
-
-  const rows = [];
-
-  historyData.forEach(r => {
-    const reason = buildWinnerReason(r);
-    const winner = getWinner(r);
-    const models = [
-      { name: "ChatGPT", resp: r.openai_response, time: r.openai_time, tokens: r.openai_tokens, score: r.openai_score },
-      { name: "Claude",  resp: r.claude_response, time: r.claude_time, tokens: r.claude_tokens, score: r.claude_score },
-      { name: "Gemini",  resp: r.gemini_response, time: r.gemini_time, tokens: r.gemini_tokens, score: r.gemini_score },
-    ];
-
-    models.forEach(m => {
-      rows.push([
-        r.id,
-        r.timestamp,
-        r.category,
-        `"${(r.prompt || "").replace(/"/g, '""')}"`,
-        m.name,
-        m.time || 0,
-        m.tokens || "N/A",
-        m.score || 0,
-        `"${(m.resp || "").replace(/"/g, '""')}"`,
-        winner,
-        `"${reason.replace(/"/g, '""')}"`
-      ].join(","));
-    });
-  });
-
-  const csv  = [headers.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href = url;
-  a.download = `promptarena_results_${new Date().toISOString().split("T")[0]}.csv`;
-  a.click();
-}
+      if (!historyData.length) { alert("No data to export!"); return; }
+      const headers = ["Run ID","Timestamp","Category","Prompt","AI Model",
+                       "Response Time (ms)","Tokens","Rule Score (/100)","LLM-as-Judge Score (/100)",
+                       "Response","Winner","Verdict"];
+      const rows = [];
+      historyData.forEach(function(r){
+        const reason = winnerSummary(r);
+        const winner = getWinner(r);
+        [
+          { name:"ChatGPT", resp:r.openai_response, time:r.openai_time, tokens:r.openai_tokens, score:r.openai_score, llm:r.openai_llm_score },
+          { name:"Claude",  resp:r.claude_response, time:r.claude_time, tokens:r.claude_tokens, score:r.claude_score, llm:r.claude_llm_score },
+          { name:"Gemini",  resp:r.gemini_response, time:r.gemini_time, tokens:r.gemini_tokens, score:r.gemini_score, llm:r.gemini_llm_score }
+        ].forEach(function(m){
+          rows.push([
+            r.id,
+            r.timestamp,
+            r.category,
+            '"' + (r.prompt||"").replace(/"/g,'""') + '"',
+            m.name,
+            m.time||0,
+            m.tokens||"N/A",
+            m.score||0,
+            (m.llm === null || m.llm === undefined) ? "" : m.llm,
+            '"' + (m.resp||"").replace(/"/g,'""') + '"',
+            winner,
+            '"' + reason.replace(/"/g,'""') + '"'
+          ].join(","));
+        });
+      });
+      const csv  = [headers.join(",")].concat(rows).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "promptarena_results_" + new Date().toISOString().split("T")[0] + ".csv";
+      a.click();
+    }
 
     window.addEventListener("load", loadHistory);
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="/sidebar.js"></script>
 
 </body>
 </html>

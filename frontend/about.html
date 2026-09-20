@@ -8,153 +8,206 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
 </head>
 <body>
-<script src="/sidebar.js"></script>
-</body>
 
   <nav>
     <div class="logo">PromptArena</div>
     <div class="nav-links">
       <a href="/">Benchmark</a>
+      <a href="/build.html">Build</a>
+      <a href="/assist.html">Code Assist</a>
       <a href="/history.html">History</a>
-      <a href="/about.html" style="color:#1a1008;">About</a>
+      <a href="/about.html" class="current">About</a>
     </div>
   </nav>
 
-  <section class="hero" style="padding:80px 24px 64px;">
-    <div class="badge">About This Project</div>
-    <div class="hero-logo" style="font-size:3.5rem;">Our Mission</div>
+  <section class="hero">
+    <div class="badge">About this project</div>
+    <h1>A research tool for comparing <em>AI assistants</em></h1>
     <p>A research-driven tool built to objectively compare AI coding assistants so developers and researchers can make informed decisions.</p>
   </section>
 
-  <main style="max-width:900px;">
+  <main>
 
     <div class="section-label">Project Overview</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
-      <p style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#1a1008;line-height:1.6;margin-bottom:16px;">
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
+      <p style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#1a1008;line-height:1.75;margin-bottom:16px;">
         AI-assisted coding is transforming how software is built, but how does one tool compare to another?
       </p>
-      <p style="font-size:0.92rem;color:#3a2e1e;line-height:1.9;margin-bottom:14px;">
+      <p style="font-size:1.02rem;color:#3a2e1e;line-height:1.9;margin-bottom:14px;">
         PromptArena is a web-based benchmarking platform developed as part of an MSc dissertation at Aston University. It provides a systematic, repeatable framework for comparing the performance of three leading AI language models: ChatGPT (OpenAI), Claude (Anthropic) and Gemini (Google) across a range of software development tasks.
       </p>
-      <p style="font-size:0.92rem;color:#3a2e1e;line-height:1.9;">
+      <p style="font-size:1.02rem;color:#3a2e1e;line-height:1.9;">
         The tool addresses a significant gap in existing research: while individual AI tools are widely discussed, rigorous side-by-side comparisons using standardised tasks and objective metrics are rare. PromptArena fills this gap by providing a reusable, extensible evaluation framework.
       </p>
     </div>
 
     <div class="section-label">Methodology</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
       <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1a1008;margin-bottom:20px;">How benchmarking works</p>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
 
-        <div style="background:#faf8f4;border-radius:10px;padding:20px;border-left:3px solid #1a1008;">
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 01</div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Prompt Design</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Standardised prompts are designed across 5 task categories to ensure fair, repeatable testing.</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 01</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Prompt Design</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Standardised prompts are designed across 7 task categories to ensure fair, repeatable testing.</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:20px;border-left:3px solid #1a1008;">
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 02</div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Simultaneous Querying</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Each prompt is sent to all 3 AI models simultaneously via their official APIs, ensuring identical conditions.</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 02</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Simultaneous Querying</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Each prompt is sent to all 3 AI models simultaneously via their official APIs, ensuring identical conditions.</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:20px;border-left:3px solid #1a1008;">
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 03</div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Auto Scoring</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Responses are automatically scored across 6 metrics using a heuristic scoring engine built in JavaScript.</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 03</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Dual Scoring</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Each response is scored two independent ways: a transparent rule-based engine and an LLM-as-Judge across four weighted quality dimensions.</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:20px;border-left:3px solid #1a1008;">
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 04</div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Storage & Analysis</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">All results are saved to a SQLite database and can be exported as CSV for further analysis.</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Step 04</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Storage & Analysis</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Results are saved to a database (SQLite locally, Azure MySQL in the cloud) and can be exported as CSV or PDF for further analysis.</div>
         </div>
 
       </div>
 
-      <p style="font-size:0.85rem;color:#7a6a58;line-height:1.8;">
-        Each benchmark run measures: <strong style="color:#1a1008;">Response Time (ms)</strong>, <strong style="color:#1a1008;">Token Usage</strong>, <strong style="color:#1a1008;">Code Correctness</strong>, <strong style="color:#1a1008;">Completeness</strong>, <strong style="color:#1a1008;">Clarity</strong> and <strong style="color:#1a1008;">Error Rate</strong> producing an Overall Score out of 100 for each model.
+      <p style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">
+        Each benchmark run measures <strong style="color:#1a1008;">Response Time (ms)</strong> and <strong style="color:#1a1008;">Token Usage</strong>, and scores four quality dimensions: <strong style="color:#1a1008;">Substance</strong>, <strong style="color:#1a1008;">Completeness</strong>, <strong style="color:#1a1008;">Clarity</strong> and <strong style="color:#1a1008;">Reliability</strong> combined into an Overall Score out of 100 for each model, produced both by a rule-based engine and by an LLM-as-Judge.
+      </p>
+    </div>
+
+    <div class="section-label">Two Scoring Methods</div>
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
+      <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1a1008;margin-bottom:20px;">Rule-based and LLM-as-Judge, side by side</p>
+      <p style="font-size:1.02rem;color:#3a2e1e;line-height:1.9;margin-bottom:20px;">
+        Every answer is scored twice, using the same four dimensions and the same weights (Substance 35%, Completeness 20%, Clarity 25%, Reliability 20%). Keeping both lets the two methods be compared directly against human judgement, a core part of the research.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+        <div style="background:#faf8f4;border-radius:10px;padding:20px;border-left:3px solid #c2612f;">
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Rule-based engine</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">A fixed set of rules inspects each response for structure, length and content signals. Fully transparent and reproducible the same answer always gives the same score but, it measures presentation, not correctness.</div>
+        </div>
+        <div style="background:#faf8f4;border-radius:10px;padding:20px;border-left:3px solid #12866b;">
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">LLM-as-Judge</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">A fixed judge model reads each answer and rates the same four dimensions, applied equally to all three models at temperature 0. Because it reads the content, it can reward genuine correctness, not just structure.</div>
+        </div>
+      </div>
+      <p style="font-size:1rem;color:#a09080;line-height:1.75;margin-top:16px;font-style:italic;">
+        Both are automated estimates of quality. Human review, gathered through a participant survey, remains the final point of comparison.
+      </p>
+    </div>
+
+    <div class="section-label">Working Modes</div>
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
+      <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1a1008;margin-bottom:20px;">Three ways to use the same framework</p>
+      <p style="font-size:1.02rem;color:#3a2e1e;line-height:1.9;margin-bottom:20px;">
+        The platform began as a single benchmark form. It now covers two further modes that put the same three models to work on real development tasks, scored identically so the results remain comparable across the whole dataset.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Benchmark</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">One prompt across seven task categories, sent to all three models at once and scored twice.</div>
+        </div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #c2612f;">
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Build a Website</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Each model returns a complete file for the same brief. The output is rendered in a sandboxed preview and checked for rendering, responsiveness, semantic landmarks and labelled form inputs, then scored on the standard four dimensions.</div>
+        </div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #12866b;">
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:6px;">Code Assist</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Real code with a chosen task: explain, find the bug, write tests, refactor or security review. All three answers are returned side by side with response time, rule score and judge score.</div>
+        </div>
+      </div>
+      <p style="font-size:1rem;color:#a09080;line-height:1.8;margin-top:16px;font-style:italic;">
+        All three modes write to the same table, so every run counts towards the study sample and exports together.
       </p>
     </div>
 
     <div class="section-label">Task Categories</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
       <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1a1008;margin-bottom:20px;">What we test</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
 
-        <div style="background:#faf8f4;border-radius:10px;padding:16px;border:1px solid #d4c9b8;">
-          <div style="font-size:0.82rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Coding</div>
-          <div style="font-size:0.76rem;color:#7a6a58;line-height:1.5;">Python, JS, algorithms, debugging</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:18px;border:1px solid #ddd3c4;">
+          <div style="font-size:1.02rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Database / SQL</div>
+          <div style="font-size:0.98rem;color:#7a6a58;line-height:1.5;">Queries, schemas, optimisation</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:16px;border:1px solid #d4c9b8;">
-          <div style="font-size:0.82rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Database / SQL</div>
-          <div style="font-size:0.76rem;color:#7a6a58;line-height:1.5;">Queries, schemas, optimisation</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:18px;border:1px solid #ddd3c4;">
+          <div style="font-size:1.02rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Reasoning & Logic</div>
+          <div style="font-size:0.98rem;color:#7a6a58;line-height:1.5;">Problem solving, step-by-step thinking</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:16px;border:1px solid #d4c9b8;">
-          <div style="font-size:0.82rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Web Development</div>
-          <div style="font-size:0.76rem;color:#7a6a58;line-height:1.5;">HTML, CSS, JavaScript components</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:18px;border:1px solid #ddd3c4;">
+          <div style="font-size:1.02rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Creative</div>
+          <div style="font-size:0.98rem;color:#7a6a58;line-height:1.5;">Short-form writing and idea generation</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:16px;border:1px solid #d4c9b8;">
-          <div style="font-size:0.82rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Reasoning & Logic</div>
-          <div style="font-size:0.76rem;color:#7a6a58;line-height:1.5;">Problem solving, step-by-step thinking</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:18px;border:1px solid #ddd3c4;">
+          <div style="font-size:1.02rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Funding Research</div>
+          <div style="font-size:0.98rem;color:#7a6a58;line-height:1.5;">UK charitable trusts and grant sources</div>
         </div>
 
-        <div style="background:#faf8f4;border-radius:10px;padding:16px;border:1px solid #d4c9b8;">
-          <div style="font-size:0.82rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Documentation</div>
-          <div style="font-size:0.76rem;color:#7a6a58;line-height:1.5;">README files, comments, technical docs</div>
+        <div style="background:#faf8f4;border-radius:12px;padding:18px;border:1px solid #ddd3c4;">
+          <div style="font-size:1.02rem;font-weight:500;color:#1a1008;margin-bottom:4px;">General</div>
+          <div style="font-size:0.98rem;color:#7a6a58;line-height:1.5;">The catch-all default: any question, explanation or comparison</div>
         </div>
 
       </div>
     </div>
 
     <div class="section-label">Technology Stack</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
 
         <div>
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Frontend</div>
-          <div style="font-size:0.88rem;color:#3a2e1e;line-height:2;">HTML5 &amp; CSS3<br/>Vanilla JavaScript<br/>Chart.js</div>
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Frontend</div>
+          <div style="font-size:0.98rem;color:#3a2e1e;line-height:2;">HTML5 &amp; CSS3<br/>Vanilla JavaScript<br/>Chart.js &amp; marked.js</div>
         </div>
 
         <div>
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Backend</div>
-          <div style="font-size:0.88rem;color:#3a2e1e;line-height:2;">Python 3.9<br/>Flask Framework<br/>Flask-CORS</div>
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Backend</div>
+          <div style="font-size:0.98rem;color:#3a2e1e;line-height:2;">Python 3.9<br/>Flask Framework<br/>Flask-CORS</div>
         </div>
 
         <div>
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Database</div>
-          <div style="font-size:0.88rem;color:#3a2e1e;line-height:2;">SQLite<br/>CSV Export</div>
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Database</div>
+          <div style="font-size:0.98rem;color:#3a2e1e;line-height:2;">SQLite (local)<br/>Azure MySQL (cloud)<br/>CSV &amp; PDF export</div>
         </div>
 
         <div>
-          <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">AI APIs</div>
-          <div style="font-size:0.88rem;color:#3a2e1e;line-height:2;">OpenAI API (GPT-4o mini)<br/>Anthropic API (Claude)<br/>Google Gemini API</div>
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">AI APIs</div>
+          <div style="font-size:0.98rem;color:#3a2e1e;line-height:2;">OpenAI (GPT-4o)<br/>Anthropic (Claude Sonnet 4.6)<br/>Google (Gemini 2.5 Pro)</div>
+        </div>
+
+        <div>
+          <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:12px;">Deployment</div>
+          <div style="font-size:0.98rem;color:#3a2e1e;line-height:2;">Docker<br/>Azure Container Apps</div>
         </div>
 
       </div>
     </div>
 
     <div class="section-label">Researcher</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:40px;display:flex;align-items:center;gap:24px;">
+    <div style="background:#fffdf9;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:40px;display:flex;align-items:center;gap:24px;">
       <div style="width:64px;height:64px;border-radius:50%;background:#1a1008;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <span style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#faf8f4;">MH</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#faf8f4;">MH</span>
       </div>
       <div>
         <div style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a1008;margin-bottom:4px;">Mariam Haroon</div>
-        <div style="font-size:0.82rem;color:#7a6a58;margin-bottom:4px;">MSc Student · Aston University</div>
-        <div style="font-size:0.82rem;color:#7a6a58;">Dissertation Project · AI-Assisted Coding & Website Development Assessment Tool · 2026</div>
+        <div style="font-size:1.02rem;color:#7a6a58;margin-bottom:4px;">MSc Student · Aston University</div>
+        <div style="font-size:1.02rem;color:#7a6a58;">Dissertation Project · AI-Assisted Coding & Website Development Assessment Tool · 2026</div>
       </div>
     </div>
 
   </main>
 
   <footer>
-    <p>PromptArena &mdash; AI Benchmark Tool &mdash; Aston University 2026</p>
+    <p>PromptArena &#124; AI Benchmark Tool</p>
   </footer>
+
+  <script src="/sidebar.js"></script>
 
 </body>
 </html>

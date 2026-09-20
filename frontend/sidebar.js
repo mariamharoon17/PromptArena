@@ -1,46 +1,55 @@
-const BACKEND = "http://127.0.0.1:5000";
+const BACKEND = "";
 let activeProjectId = null;
 let activeProjectName = null;
 
 // ── Inject sidebar into every page ───────────────────────
 function injectSidebar() {
+  const path = location.pathname;
+  const isHome = path === "/" || path === "/index.html" || path === "";
   const sidebarHTML = `
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo">PromptArena</div>
+        <div>
+          <span class="sidebar-logo">PromptArena</span>
+        </div>
         <button class="sidebar-close" onclick="closeSidebar()">&#x2715;</button>
       </div>
 
       <div class="sidebar-nav">
-        <div class="sidebar-nav-label">Navigation</div>
-        <a href="/" class="sidebar-link ${location.pathname === '/' || location.pathname === '/index.html' ? 'active' : ''}">
-          <span class="sidebar-link-icon">⚡</span> Benchmark
+        <a href="/" class="sidebar-link ${isHome ? 'active' : ''}">
+          <span class="sidebar-num">01</span> Benchmark
         </a>
-        <a href="/history.html" class="sidebar-link ${location.pathname.includes('history') ? 'active' : ''}">
-          <span class="sidebar-link-icon">🕓</span> History
+        <a href="/build.html" class="sidebar-link ${path.includes('build') ? 'active' : ''}">
+          <span class="sidebar-num">02</span> Build a Website
         </a>
-        <a href="/learn-more.html" class="sidebar-link ${location.pathname.includes('learn-more') ? 'active' : ''}">
-          <span class="sidebar-link-icon">📖</span> Learn More
+        <a href="/assist.html" class="sidebar-link ${path.includes('assist') ? 'active' : ''}">
+          <span class="sidebar-num">03</span> Code Assist
         </a>
-        <a href="/about.html" class="sidebar-link ${location.pathname.includes('about') ? 'active' : ''}">
-          <span class="sidebar-link-icon">👤</span> About
+        <a href="/learn-more.html" class="sidebar-link ${path.includes('learn-more') ? 'active' : ''}">
+          <span class="sidebar-num">04</span> Methodology
+        </a>
+        <a href="/history.html" class="sidebar-link ${path.includes('history') ? 'active' : ''}">
+          <span class="sidebar-num">05</span> History
+        </a>
+        <a href="/about.html" class="sidebar-link ${path.includes('about') ? 'active' : ''}">
+          <span class="sidebar-num">06</span> About
         </a>
       </div>
 
-      <div class="sidebar-nav" style="border-bottom:1px solid #ffffff15;">
+      <div class="sidebar-nav">
         <div class="sidebar-nav-label" style="display:flex;align-items:center;justify-content:space-between;">
           <span>Projects</span>
-          <button onclick="showNewProjectInput()" style="background:none;border:none;color:#7a6a58;font-size:1.1rem;cursor:pointer;padding:0 4px;letter-spacing:0;text-transform:none;">+</button>
+          <button onclick="showNewProjectInput()" style="background:none;border:none;color:#7a6a58;font-size:1.2rem;cursor:pointer;padding:0 4px;line-height:1;">+</button>
         </div>
         <div id="new-project-input" style="display:none;padding:6px 0;">
           <input type="text" id="project-name-input" placeholder="Project name..."
-            style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #ffffff20;background:#ffffff10;color:#faf8f4;font-size:0.82rem;font-family:'Inter',sans-serif;outline:none;"
+            style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid #ddd3c4;background:#fffdf9;color:#1a1008;font-size:0.86rem;font-family:'Inter',sans-serif;outline:none;"
             onkeydown="if(event.key==='Enter') createProject()"/>
           <div style="display:flex;gap:6px;margin-top:6px;">
-            <button onclick="createProject()" style="flex:1;background:#faf8f4;color:#1a1008;border:none;padding:6px;border-radius:6px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Create</button>
-            <button onclick="hideNewProjectInput()" style="flex:1;background:transparent;color:#7a6a58;border:1px solid #ffffff20;padding:6px;border-radius:6px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Cancel</button>
+            <button onclick="createProject()" style="flex:1;background:#1a1008;color:#faf8f4;border:none;padding:8px;border-radius:999px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Create</button>
+            <button onclick="hideNewProjectInput()" style="flex:1;background:transparent;color:#7a6a58;border:1px solid #ddd3c4;padding:8px;border-radius:999px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Cancel</button>
           </div>
         </div>
         <div id="projects-list" style="margin-top:4px;"></div>
@@ -49,7 +58,7 @@ function injectSidebar() {
       <div class="sidebar-history">
         <div class="sidebar-history-label">Recent Benchmarks</div>
         <div id="sidebar-history-list">
-          <div style="font-size:0.8rem;color:#a09070;padding:8px;">Loading...</div>
+          <div style="font-size:0.8rem;color:#a09080;padding:8px 10px;">Loading...</div>
         </div>
       </div>
 
@@ -62,14 +71,14 @@ function injectSidebar() {
 
     <!-- Project Chat Modal -->
     <div id="project-modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#00000070;z-index:2000;backdrop-filter:blur(4px);">
-      <div id="project-modal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#faf8f4;border-radius:16px;width:90%;max-width:800px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;border:1px solid #d4c9b8;">
+      <div id="project-modal" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#faf8f4;border-radius:18px;width:90%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;border:1px solid #ddd3c4;">
 
         <div style="padding:20px 24px;border-bottom:1px solid #d4c9b8;display:flex;justify-content:space-between;align-items:center;">
           <div>
             <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:4px;">Project</div>
             <div id="modal-project-name" style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1a1008;font-weight:700;"></div>
           </div>
-          <button onclick="closeProjectModal()" style="background:#1a1008;color:#faf8f4;border:none;padding:8px 16px;border-radius:8px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Close</button>
+          <button onclick="closeProjectModal()" style="background:#1a1008;color:#faf8f4;border:none;padding:8px 16px;border-radius:999px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">Close</button>
         </div>
 
         <div id="modal-history" style="flex:1;overflow-y:auto;padding:16px 24px;"></div>
@@ -77,21 +86,19 @@ function injectSidebar() {
         <div style="padding:16px 24px;border-top:1px solid #d4c9b8;background:#ffffff;">
           <div style="display:flex;gap:10px;align-items:flex-end;">
             <div style="flex:1;">
-              <select id="modal-category" style="width:100%;padding:8px 12px;border:1px solid #d4c9b8;border-radius:8px;background:#faf8f4;color:#1a1008;font-family:'Inter',sans-serif;font-size:0.85rem;margin-bottom:8px;">
+              <select id="modal-category" style="width:100%;padding:8px 12px;border:1px solid #ddd3c4;border-radius:8px;background:#faf8f4;color:#1a1008;font-family:'Inter',sans-serif;font-size:0.85rem;margin-bottom:8px;">
+                <option value="General">General (any topic)</option>
                 <option value="Funding Research">Funding Research</option>
-                <option value="General">General Knowledge</option>
-                <option value="Coding">Coding</option>
                 <option value="Database">Database / SQL</option>
-                <option value="Website">Website Development</option>
                 <option value="Creative">Creative Writing</option>
                 <option value="Reasoning">Reasoning & Logic</option>
               </select>
               <textarea id="modal-prompt" rows="2" placeholder="Enter your prompt and press Enter..."
-                style="width:100%;padding:10px 14px;border:1px solid #d4c9b8;border-radius:8px;background:#faf8f4;color:#1a1008;font-family:'Inter',sans-serif;font-size:0.88rem;resize:none;"
+                style="width:100%;padding:10px 14px;border:1px solid #ddd3c4;border-radius:8px;background:#faf8f4;color:#1a1008;font-family:'Inter',sans-serif;font-size:0.88rem;resize:none;"
                 onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runProjectBenchmark();}"></textarea>
             </div>
             <button onclick="runProjectBenchmark()" id="modal-run-btn"
-              style="background:#1a1008;color:#faf8f4;border:none;padding:12px 20px;border-radius:8px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;margin-bottom:2px;">
+              style="background:#1a1008;color:#faf8f4;border:none;padding:12px 20px;border-radius:999px;font-size:0.72rem;cursor:pointer;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;margin-bottom:2px;">
               Run →
             </button>
           </div>
@@ -101,16 +108,40 @@ function injectSidebar() {
   `;
 
   document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
+  mountToggleInNav();
+  if (isDocked()) document.body.classList.add("sb-collapsed");
   loadProjects();
   loadSidebarHistory();
 }
 
+// Move the toggle into the top bar so the button, wordmark and page
+// content all share one left edge whether the sidebar is open or closed.
+function mountToggleInNav() {
+  const btn = document.querySelector(".sidebar-toggle");
+  const bar = document.querySelector("nav");
+  const logo = bar ? bar.querySelector(".logo") : null;
+  if (!btn || !bar || !logo) return;
+  const left = document.createElement("div");
+  left.className = "nav-left";
+  logo.parentNode.insertBefore(left, logo);
+  left.appendChild(btn);
+  left.appendChild(logo);
+}
+
 // ── Sidebar toggle ────────────────────────────────────────
+function isDocked() { return window.matchMedia("(min-width: 1100px)").matches; }
+
 function toggleSidebar() {
+  if (isDocked()) {
+    // desktop: collapse / expand the docked rail
+    const collapsed = document.body.classList.toggle("sb-collapsed");
+    try { localStorage.setItem("pa-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
+    if (!collapsed) { loadSidebarHistory(); loadProjects(); }
+    return;
+  }
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
-  const isOpen  = sidebar.classList.contains("open");
-  if (isOpen) { closeSidebar(); }
+  if (sidebar.classList.contains("open")) { closeSidebar(); }
   else {
     sidebar.classList.add("open");
     overlay.classList.add("open");
@@ -120,6 +151,7 @@ function toggleSidebar() {
 }
 
 function closeSidebar() {
+  if (isDocked()) return;
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebarOverlay").classList.remove("open");
 }
@@ -160,23 +192,23 @@ async function loadProjects() {
     const list     = document.getElementById("projects-list");
 
     if (!projects.length) {
-      list.innerHTML = "<div style='font-size:0.78rem;color:#a09070;padding:6px 8px;'>No projects yet — click + to create one</div>";
+      list.innerHTML = "<div style='font-size:0.8rem;color:#a09080;padding:6px 10px;line-height:1.5;'>No projects yet, click + to create one</div>";
       return;
     }
 
     list.innerHTML = projects.map(p => `
       <div class="sidebar-history-item"
-           style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:${activeProjectId === p.id ? '#ffffff15' : 'transparent'};border-radius:8px;"
+           style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:${activeProjectId === p.id ? 'rgba(26,16,8,0.06)' : 'transparent'};border-radius:10px;"
            onclick="openProjectModal(${p.id}, '${p.name.replace(/'/g,"\\'")}')">
         <div style="display:flex;align-items:center;gap:8px;overflow:hidden;">
           <span style="font-size:0.85rem;">📁</span>
-          <span style="font-size:0.82rem;color:${activeProjectId === p.id ? '#faf8f4' : '#a09080'};
+          <span style="font-size:0.86rem;color:${activeProjectId === p.id ? '#1a1008' : '#4a3a2a'};
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
             ${p.name}
           </span>
         </div>
         <button onclick="event.stopPropagation(); deleteProject(${p.id})"
-          style="background:none;border:none;color:#5a4a38;font-size:0.7rem;cursor:pointer;flex-shrink:0;padding:2px 4px;letter-spacing:0;text-transform:none;">✕</button>
+          style="background:none;border:none;color:#a09080;font-size:0.72rem;cursor:pointer;flex-shrink:0;padding:2px 4px;">✕</button>
       </div>
     `).join("");
   } catch (err) {
@@ -223,7 +255,7 @@ async function loadProjectHistory(id) {
     }
 
     container.innerHTML = data.map(row => `
-      <div style="margin-bottom:20px;padding:16px;background:#ffffff;border:1px solid #d4c9b8;border-radius:12px;">
+      <div style="margin-bottom:20px;padding:16px;background:#ffffff;border:1px solid #ddd3c4;border-radius:12px;">
         <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:6px;">${row.timestamp} · ${row.category}</div>
         <div style="font-family:'Playfair Display',serif;font-size:0.95rem;color:#1a1008;margin-bottom:12px;font-weight:600;">${row.prompt}</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
@@ -284,7 +316,7 @@ async function loadSidebarHistory() {
     const data = await res.json();
 
     if (!data.length) {
-      list.innerHTML = "<div style='font-size:0.8rem;color:#a09070;padding:8px;'>No benchmarks yet</div>";
+      list.innerHTML = "<div style='font-size:0.8rem;color:#a09080;padding:8px 10px;'>No benchmarks yet</div>";
       return;
     }
 
@@ -295,7 +327,7 @@ async function loadSidebarHistory() {
       </div>
     `).join("");
   } catch {
-    list.innerHTML = "<div style='font-size:0.8rem;color:#a09070;padding:8px;'>No history yet</div>";
+    list.innerHTML = "<div style='font-size:0.8rem;color:#a09080;padding:8px 10px;'>No history yet</div>";
   }
 }
 

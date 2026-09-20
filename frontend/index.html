@@ -5,31 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PromptArena</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
 </head>
 <body>
-
   <nav>
     <div class="logo">PromptArena</div>
     <div class="nav-links">
-      <a href="/">Benchmark</a>
-      <a href="/history.html">History</a>
-      <a href="/about.html">About</a>
+      <a href="/" class="current">Benchmark</a>
+      <a href="/build.html" class="">Build</a>
+      <a href="/assist.html" class="">Code Assist</a>
+      <a href="/history.html" class="">History</a>
+      <a href="/about.html" class="">About</a>
     </div>
   </nav>
-
   <section class="hero">
-    <div class="badge">AI Benchmark Tool</div>
-    <div class="hero-logo">PromptArena</div>
-    <h1>Where AI Models<br/>Prove Their <em>Worth</em></h1>
-    <p>Test, compare and benchmark ChatGPT, Claude and Gemini on any task with precision metrics that matter.</p>
+    <h1>Where AI models prove their <em>worth</em></h1>
+    <p>Send one prompt to ChatGPT, Claude and Gemini at once. Score every answer twice, once by fixed rules, once by an LLM-as-Judge, then build a website or debug your code with the model that actually won.</p>
     <div class="hero-btns">
-      <button onclick="document.querySelector('.input-card').scrollIntoView({behavior:'smooth'})">Run a Benchmark</button>
-      <button class="outline" onclick="window.location.href='/learn-more.html'">Learn More</button>
+      <button onclick="document.querySelector('.input-card').scrollIntoView({behavior:'smooth'})">Run a benchmark</button>
+      <button class="outline" onclick="window.location.href='/learn-more.html'">How scoring works</button>
     </div>
   </section>
 
   <main>
+    <div class="mode-tabs">
+      <a class="mode-tab active" href="/">
+        <span class="mode-tab-num">01</span>
+        <span class="mode-tab-title">Benchmark</span>
+        <span class="mode-tab-blurb">One prompt, three models, two scorers</span>
+      </a>
+      <a class="mode-tab " href="/build.html">
+        <span class="mode-tab-num">02</span>
+        <span class="mode-tab-title">Build a Website</span>
+        <span class="mode-tab-blurb">Compare rendered sites, not just code</span>
+      </a>
+      <a class="mode-tab " href="/assist.html">
+        <span class="mode-tab-num">03</span>
+        <span class="mode-tab-title">Code Assist</span>
+        <span class="mode-tab-blurb">Explain, debug, test or refactor</span>
+      </a>
+    </div>
 
     <div class="section-label">Configure your test</div>
 
@@ -37,23 +51,22 @@
       <div class="field">
         <label>Category</label>
         <select id="category" onchange="updatePlaceholder()">
-         <option value="Funding Research">Funding Research</option>
-          <option value="General">General Knowledge</option>
-          <option value="Coding">Coding</option>
+          <option value="General">General (any topic)</option>
+          <option value="Funding Research">Funding Research</option>
           <option value="Database">Database / SQL</option>
-          <option value="Website">Website Development</option>
           <option value="Creative">Creative Writing</option>
-          <option value="Reasoning">Reasoning & Logic</option>
-          </select>
+          <option value="Reasoning">Reasoning &amp; Logic</option>
+        </select>
       </div>
       <div class="field">
-        <label>Your Prompt</label>
+        <label>Your prompt</label>
         <textarea id="prompt" placeholder="e.g. Write a Python function to reverse a string..."></textarea>
       </div>
-      <button id="runBtn" onclick="runBenchmark()">Run Benchmark</button>
+      <button id="runBtn" onclick="runBenchmark()">Run benchmark</button>
+      <div class="panel-note">All three models receive the identical prompt at the same time. The LLM-as-Judge runs at temperature 0.</div>
     </div>
 
-    <div id="active-project-indicator" style="display:none; margin-top:8px; font-size:0.78rem; color:#7a6a58; letter-spacing:1px; padding:8px 12px; background:#faf8f4; border:1px solid #d4c9b8; border-radius:8px;"></div>
+    <div id="active-project-indicator" style="display:none;margin-top:10px;font-size:0.78rem;color:#7a6a58;padding:10px 14px;background:#fffdf9;border:1px solid #ddd3c4;border-radius:12px;"></div>
 
     <div id="loading" style="display:none;">
       <div class="loading-inner">
@@ -66,92 +79,141 @@
 
       <div class="section-label" style="margin-top:48px;">Responses</div>
 
-      <div class="resp-tabs">
-        <button class="resp-tab active" data-tab="openai" onclick="switchTab('openai')">
-          ChatGPT
-          <span class="model-badge" id="badge-openai"></span>
-        </button>
-        <button class="resp-tab" data-tab="claude" onclick="switchTab('claude')">
-          Claude
-          <span class="model-badge" id="badge-claude"></span>
-        </button>
-        <button class="resp-tab" data-tab="gemini" onclick="switchTab('gemini')">
-          Gemini
-          <span class="model-badge" id="badge-gemini"></span>
-        </button>
+      <div class="resp-tabs" id="answerTabs">
+        <button type="button" class="resp-tab active" data-model="openai" onclick="showAnswer('openai')">ChatGPT<span class="tab-score" id="tabscore-openai"></span></button>
+        <button type="button" class="resp-tab" data-model="claude" onclick="showAnswer('claude')">Claude<span class="tab-score" id="tabscore-claude"></span></button>
+        <button type="button" class="resp-tab" data-model="gemini" onclick="showAnswer('gemini')">Gemini<span class="tab-score" id="tabscore-gemini"></span></button>
       </div>
 
-      <div class="resp-panel active" id="pane-openai">
-        <div class="response-box" id="resp-openai">—</div>
-        <div class="metrics" id="meta-openai"></div>
-      </div>
-      <div class="resp-panel" id="pane-claude">
-        <div class="response-box" id="resp-claude">—</div>
-        <div class="metrics" id="meta-claude"></div>
-      </div>
-      <div class="resp-panel" id="pane-gemini">
-        <div class="response-box" id="resp-gemini">—</div>
-        <div class="metrics" id="meta-gemini"></div>
+      <div id="answerList"></div>
+
+      <div class="verdict" id="verdictBar" style="display:none;">
+        <div class="verdict-label">Why it won</div>
+        <div class="verdict-text" id="verdictText"></div>
       </div>
 
-      <div class="section-label" style="margin-top:48px;">Benchmark Scores</div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>ChatGPT</th>
-            <th>Claude</th>
-            <th>Gemini</th>
-          </tr>
-        </thead>
-        <tbody id="scoreBody"></tbody>
-      </table>
-
-      <div class="section-label" style="margin-top:48px;">Visual Analysis</div>
+      <div class="section-label" style="margin-top:48px;">Scores</div>
 
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">Response Time (ms)</div>
-          <div class="chart-subtitle">Lower is better</div>
-          <canvas id="chartTime"></canvas>
+          <div class="chart-title">Rule-based scores</div>
+          <div class="chart-subtitle">Deterministic. The same response always produces the same score.</div>
+          <div class="chart-legend">
+            <span><i style="background:#12866b"></i>ChatGPT</span>
+            <span><i style="background:#c2612f"></i>Claude</span>
+            <span><i style="background:#3c6bb5"></i>Gemini</span>
+          </div>
+          <canvas id="chartRule"></canvas>
         </div>
 
         <div class="chart-card">
-          <div class="chart-title">Overall Score</div>
-          <div class="chart-subtitle">Auto-calculated quality score /100</div>
-          <canvas id="chartTokens"></canvas>
+          <div class="chart-title">LLM-as-Judge scores</div>
+          <div class="chart-subtitle">A fixed judge model at temperature 0, applied equally to all three answers.</div>
+          <div class="chart-legend">
+            <span><i style="background:#12866b"></i>ChatGPT</span>
+            <span><i style="background:#c2612f"></i>Claude</span>
+            <span><i style="background:#3c6bb5"></i>Gemini</span>
+          </div>
+          <canvas id="chartJudge"></canvas>
         </div>
 
         <div class="chart-card chart-card--wide">
-          <div class="chart-title">Quality Metrics Comparison</div>
-          <div class="chart-subtitle">All 3 models scored side by side</div>
-          <canvas id="chartRadar"></canvas>
+          <div class="chart-title">Response time</div>
+          <div class="chart-subtitle">Milliseconds, lower is better</div>
+          <canvas id="chartTime"></canvas>
         </div>
       </div>
 
+      <div class="resp-head">
+        <div class="section-label" style="margin-bottom:0;">Full score tables</div>
+        <button type="button" class="wide-toggle" onclick="toggleTables()" id="tablesToggle">Show tables</button>
+      </div>
+
+      <div id="tablesWrap" style="display:none;">
+        <div class="section-label" style="margin-top:12px;">Rule-based</div>
+        <table>
+          <thead><tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+          <tbody id="scoreBody"></tbody>
+        </table>
+        <div class="section-label" style="margin-top:28px;">LLM-as-Judge</div>
+        <table>
+          <thead><tr><th>Metric</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+          <tbody id="scoreBodyLLM"></tbody>
+        </table>
+      </div>
+
     </div>
+
+    <section id="methodology" style="margin-top:72px;padding-top:56px;border-top:1px solid rgba(26,16,8,0.10);">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:48px;align-items:start;">
+        <div>
+          <h2 style="font-family:'Playfair Display',serif;font-size:clamp(28px,3.4vw,42px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:16px;">Two scorers, one rubric</h2>
+          <p style="font-size:1rem;line-height:1.7;color:#5a4a38;margin-bottom:16px;text-wrap:pretty;">Every response is scored twice on the same four dimensions and the same fixed weights. The rule-based scorer is deterministic and fully reproducible. The LLM-as-Judge reads the content and runs at temperature 0, applied equally to all three answers.</p>
+          <p style="font-size:0.95rem;line-height:1.7;color:#5a4a38;margin-bottom:16px;text-wrap:pretty;">The same rubric covers all three modes. Build a Website adds four render checks on top (does the file render, does it hold up at mobile width, does it use semantic landmarks, are the form inputs labelled). Code Assist scores explanations, fixes, tests and refactors exactly as it scores any other answer, so the model you pick is the one that measurably did the better job.</p>
+          <p style="font-size:0.88rem;line-height:1.65;color:#7a6a58;text-wrap:pretty;">The weighting was designed to counter verbosity bias. Self-preference bias remains a limitation; leave-one-out judging is noted as future work. The Winner badge follows the rule-based score.</p>
+        </div>
+        <div class="dim-grid">
+          <div class="dim">
+            <div class="dim-head"><span class="dim-name">Substance</span><span class="dim-weight">35%</span></div>
+            <p>Real content: working code, tables, links, concrete figures. Broken or error-filled output scores lower.</p>
+          </div>
+          <div class="dim">
+            <div class="dim-head"><span class="dim-name">Completeness</span><span class="dim-weight">20%</span></div>
+            <p>Depth relative to the prompt, with a diminishing-returns plateau so padding earns nothing.</p>
+          </div>
+          <div class="dim">
+            <div class="dim-head"><span class="dim-name">Clarity</span><span class="dim-weight">25%</span></div>
+            <p>Readability, sentence length, and whether the answer is structured with lists, headings or line breaks.</p>
+          </div>
+          <div class="dim">
+            <div class="dim-head"><span class="dim-name">Reliability</span><span class="dim-weight">20%</span></div>
+            <p>Refusals and broken output are penalised; calibrated, honest uncertainty is rewarded.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="recent" style="margin-top:72px;padding-top:56px;border-top:1px solid rgba(26,16,8,0.10);">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:clamp(24px,2.6vw,32px);font-weight:700;margin:0;">Recent runs</h2>
+        <a href="/history.html" id="viewAllRuns" style="font-size:0.92rem;">View all runs</a>
+      </div>
+      <div class="runs-table">
+        <div class="runs-row head">
+          <span>Date</span><span>Prompt</span><span>Category</span><span>Winner</span><span>Score</span>
+        </div>
+        <div id="recentRuns">
+          <div class="runs-row"><span class="r-date">&mdash;</span><span class="r-prompt" style="color:#a09080;">Loading recent runs…</span><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="modes" style="margin-top:72px;padding-top:56px;border-top:1px solid rgba(26,16,8,0.10);">
+      <div class="section-label">Other modes</div>
+      <div class="mode-grid">
+        <a class="mode-card" href="/build.html">
+          <div class="mode-card-title">Build a Website</div>
+          <div class="mode-card-text">Describe a site once. Each model returns a complete file, rendered live in a sandboxed preview at desktop and mobile widths, checked for responsiveness, semantic landmarks and labelled inputs, then scored on the same rubric.</div>
+        </a>
+        <a class="mode-card" href="/assist.html">
+          <div class="mode-card-title">Code Assist</div>
+          <div class="mode-card-text">Paste code and pick a task: explain, find the bug, write tests, refactor or security review. All three answers come back scored, with a diagnosis naming which model led and why.</div>
+        </a>
+        <a class="mode-card" href="/history.html">
+          <div class="mode-card-title">History &amp; export</div>
+          <div class="mode-card-text">Every saved run with both scorers, exportable as CSV or printable as a PDF report for your dissertation.</div>
+        </a>
+      </div>
+    </section>
   </main>
 
   <footer>
-    <p>PromptArena &mdash; AI Benchmark Tool</p>
+    <p>PromptArena &#124; AI Benchmark Tool</p>
   </footer>
-  
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/sidebar.js"></script>
   <script src="/script.js"></script>
-  <script>
-    function switchTab(model) {
-      document.querySelectorAll('#results .resp-tab').forEach(function (t) {
-        t.classList.toggle('active', t.dataset.tab === model);
-      });
-      document.querySelectorAll('#results .resp-panel').forEach(function (p) {
-        p.classList.remove('active');
-      });
-      var pane = document.getElementById('pane-' + model);
-      if (pane) pane.classList.add('active');
-    }
-  </script>
 </body>
 </html>

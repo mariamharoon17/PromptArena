@@ -9,21 +9,21 @@
 </head>
 
 <body>
-<script src="/sidebar.js"></script>
-</body>
 
   <nav>
     <div class="logo">PromptArena</div>
     <div class="nav-links">
       <a href="/">Benchmark</a>
+      <a href="/build.html">Build</a>
+      <a href="/assist.html">Code Assist</a>
       <a href="/history.html">History</a>
       <a href="/about.html">About</a>
     </div>
   </nav>
 
-  <section class="hero" style="padding:80px 24px 64px;">
-    <div class="badge">How It Works</div>
-    <div class="hero-logo" style="font-size:3.5rem;">Learn More</div>
+  <section class="hero">
+    <div class="badge">How it works</div>
+    <h1>The method behind every <em>score</em></h1>
     <p>Everything you need to know about PromptArena: how to use it, what it measures, and why it matters.</p>
     <div class="hero-btns">
       <button onclick="window.location.href='/'">Start Benchmarking</button>
@@ -31,168 +31,222 @@
     </div>
   </section>
 
-  <main style="max-width:900px;">
+  <main>
 
     <div class="section-label">What is PromptArena?</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
-      <p style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#1a1008;line-height:1.6;margin-bottom:16px;">
+    <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
+      <p style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#1a1008;line-height:1.75;margin-bottom:16px;">
         A real-time AI benchmarking tool that tests ChatGPT, Claude and Gemini side by side.
       </p>
-      <p style="font-size:0.92rem;color:#3a2e1e;line-height:1.9;">
-        PromptArena lets you enter any prompt, send it simultaneously to all three AI models, and instantly compare their responses across 6 objective performance metrics. Every result is saved automatically so you can track performance over time and export your data.
+      <p style="font-size:1.02rem;color:#3a2e1e;line-height:1.9;">
+        PromptArena lets you enter any prompt, send it simultaneously to all three AI models, and instantly compare their responses. Every answer is scored two independent ways: a rule-based engine and an LLM-as-Judge across four quality dimensions. Every result is saved automatically so you can track performance over time and export your data as CSV or PDF.
       </p>
     </div>
 
     <div class="section-label">Key Features</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px;">
 
-      <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:24px;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#1a1008;margin-bottom:8px;">Real-Time Comparison</div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">All 3 AI models are queried simultaneously no switching between tools or copying responses manually.</div>
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Real-Time Comparison</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">All 3 AI models are queried simultaneously no switching between tools or copying responses manually.</div>
       </div>
 
-      <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:24px;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#1a1008;margin-bottom:8px;">Auto Scoring Engine</div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Responses are instantly scored on correctness, completeness, clarity and error rate.</div>
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Dual Scoring Engine</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Responses are scored two ways: a transparent rule-based engine and an LLM-as-Judge on Substance, Completeness, Clarity and Reliability.</div>
       </div>
 
-      <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:24px;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#1a1008;margin-bottom:8px;">Visual Charts</div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Bar charts and comparison graphs make it easy to see which model wins at a glance.</div>
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Build a Website</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Describe a site once and all three models return a complete file. Each one is rendered live in a sandboxed preview and checked for responsive rules, semantic landmarks and labelled form inputs, then scored on the same four dimensions.</div>
       </div>
 
-      <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:24px;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#1a1008;margin-bottom:8px;">Benchmark History</div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Every run is saved to a database. Review past results, track trends and see how models perform over time.</div>
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Code Assist</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Paste your code, choose a task (explain, find the bug, write tests, refactor or security review) and compare all three answers side by side, scored with the same rubric so you can pick the strongest fix.</div>
       </div>
 
-      <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:24px;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#1a1008;margin-bottom:8px;">CSV Export</div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Download all your benchmark data as a spreadsheet for use in your research, report or dissertation.</div>
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Visual Charts</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Bar charts and comparison graphs make it easy to see which model wins at a glance.</div>
       </div>
 
-      <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:24px;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#1a1008;margin-bottom:8px;">5 Task Categories</div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Test across coding, SQL, web development, reasoning and documentation tasks.</div>
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Benchmark History</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Every run is saved to a database. Review past results, track trends and see how models perform over time.</div>
+      </div>
+
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">LLM-as-Judge</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">A second opinion alongside the rule-based score: a fixed judge model reads each answer and rates the same four dimensions, so you can compare the two methods.</div>
+      </div>
+
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">Export &amp; Reports</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Download all your benchmark data as a CSV spreadsheet, or generate a PDF report for your research, report or dissertation.</div>
+      </div>
+
+      <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:24px;">
+        <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#7a6a58;margin-bottom:8px;">Feature</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.12rem;color:#1a1008;margin-bottom:8px;">7 Task Categories</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Test across coding, database/SQL, web development, reasoning, creative, funding research and general tasks.</div>
       </div>
 
     </div>
 
+
+    <div class="section-label">Build &amp; Code Assist</div>
+    <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
+      <p style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a1008;margin-bottom:18px;">Two working modes, one scoring framework</p>
+      <p style="font-size:1.05rem;color:#3a2e1e;line-height:1.9;margin-bottom:20px;">
+        Benchmark answers a question. Build and Code Assist do a job. Both send an engineered prompt to the same three models under identical conditions, and both are scored by the same rule-based engine and LLM-as-Judge, so their results sit alongside every other run in your history and can be compared directly.
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:1.05rem;font-weight:600;color:#1a1008;margin-bottom:8px;">Build a Website</div>
+          <div style="font-size:0.96rem;color:#7a6a58;line-height:1.75;">
+            You describe the site, pick a stack (single-file HTML, Tailwind CDN or a Flask template), a tone and the requirements that matter. Each model returns a complete file. PromptArena extracts the HTML, renders it in a sandboxed frame at desktop and mobile widths, and reports four build checks: does it render, does it hold up responsively, does it use semantic landmarks, are the form inputs labelled. The rule-based score and the judge score then rank the three.
+          </div>
+        </div>
+        <div style="background:#faf8f4;border-radius:12px;padding:22px;border-left:3px solid #7d6a57;">
+          <div style="font-size:1.05rem;font-weight:600;color:#1a1008;margin-bottom:8px;">Code Assist</div>
+          <div style="font-size:0.96rem;color:#7a6a58;line-height:1.75;">
+            You paste code, choose the language and one of five tasks, and optionally add context about where the code runs. All three models receive the identical instruction. Answers come back rendered with syntax-highlighted blocks, each with its response time, rule score and judge score, plus a short diagnosis naming which model led and why. Any answer can be copied straight back into your project.
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:1.05rem;color:#a09080;line-height:1.8;margin-top:18px;font-style:italic;">
+        Both modes save into the same database as a normal benchmark run, so they appear in History, count towards your totals and export to CSV and PDF with everything else.
+      </p>
+    </div>
+
     <div class="section-label">How to Use</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
+    <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
 
-      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #d4c9b8;">
-        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#d4c9b8;font-weight:700;flex-shrink:0;width:40px;">01</div>
+      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #ddd3c4;">
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#ddd3c4;font-weight:700;flex-shrink:0;width:40px;">01</div>
         <div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Choose a category</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Select from Coding, Database, Web Development, Reasoning or General Knowledge.</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Choose a category</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Select from Coding, Database, Web Development, Reasoning, Creative, Funding Research or General.</div>
         </div>
       </div>
 
-      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #d4c9b8;">
-        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#d4c9b8;font-weight:700;flex-shrink:0;width:40px;">02</div>
+      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #ddd3c4;">
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#ddd3c4;font-weight:700;flex-shrink:0;width:40px;">02</div>
         <div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Enter your prompt</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Type any question or task you want to test, the same prompt goes to all 3 AIs.</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Enter your prompt</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Type any question or task you want to test, the same prompt goes to all 3 AIs.</div>
         </div>
       </div>
 
-      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #d4c9b8;">
-        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#d4c9b8;font-weight:700;flex-shrink:0;width:40px;">03</div>
+      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #ddd3c4;">
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#ddd3c4;font-weight:700;flex-shrink:0;width:40px;">03</div>
         <div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Run the benchmark</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Click Run Benchmark and wait a few seconds while all 3 models respond.</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Run the benchmark</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Click Run Benchmark and wait a few seconds while all 3 models respond.</div>
         </div>
       </div>
 
-      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #d4c9b8;">
-        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#d4c9b8;font-weight:700;flex-shrink:0;width:40px;">04</div>
+      <div style="display:flex;gap:20px;padding:16px 0;border-bottom:1px solid #ddd3c4;">
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#ddd3c4;font-weight:700;flex-shrink:0;width:40px;">04</div>
         <div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Review the results</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Compare responses, scores, response times and token usage side by side.</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Review the results</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Compare responses, scores, response times and token usage side by side.</div>
         </div>
       </div>
 
       <div style="display:flex;gap:20px;padding:16px 0;">
-        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#d4c9b8;font-weight:700;flex-shrink:0;width:40px;">05</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#ddd3c4;font-weight:700;flex-shrink:0;width:40px;">05</div>
         <div>
-          <div style="font-size:0.95rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Check history</div>
-          <div style="font-size:0.84rem;color:#7a6a58;line-height:1.6;">Visit the History page to see all past runs and export your data as CSV.</div>
+          <div style="font-size:1.05rem;font-weight:500;color:#1a1008;margin-bottom:4px;">Check history</div>
+          <div style="font-size:1.05rem;color:#7a6a58;line-height:1.75;">Visit the History page to see all past runs and export your data as CSV.</div>
         </div>
       </div>
 
     </div>
 
     <div class="section-label">Metrics Explained</div>
-    <div style="background:#ffffff;border:1px solid #d4c9b8;border-radius:14px;padding:36px;margin-bottom:24px;">
+    <div style="background:#ffffff;border:1px solid #ddd3c4;border-radius:16px;padding:36px;margin-bottom:24px;">
 
-      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #d4c9b8;">
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Response Time</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Response Time</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">ms</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">How fast the AI responded. Measured from request sent to response received. Lower is better.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">How fast the AI responded. Measured from request sent to response received. Lower is better.</div>
       </div>
 
-      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #d4c9b8;">
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Token Usage</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Token Usage</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">count</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Total tokens used in input and output. Relates to cost and processing efficiency.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Total tokens used in input and output. Relates to cost and processing efficiency.</div>
       </div>
 
-      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #d4c9b8;">
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Code Correctness</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Substance</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">/100</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Whether the response contains valid code with no syntax errors or known error patterns.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">The genuine, useful content of the answer: working code, accurate facts, tables and concrete figures. Weighted highest, at 35%.</div>
       </div>
 
-      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #d4c9b8;">
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Completeness</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Completeness</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">/100</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">How thoroughly the AI answered the prompt relative to its complexity and length.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">How thoroughly the AI answered the prompt relative to its complexity and length.</div>
       </div>
 
-      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #d4c9b8;">
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Clarity</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Clarity</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">/100</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">How well-structured and readable the response is, sentence length, formatting and organisation.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">How well-structured and readable the response is, sentence length, formatting and organisation.</div>
       </div>
 
-      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #d4c9b8;">
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Error Rate</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Reliability</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">/100</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Whether the AI refused, apologised or produced error messages. Higher score means fewer errors.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">How trustworthy the answer is. Refusals and broken output lower the score, while sensible, honest uncertainty is treated fairly.</div>
+      </div>
+
+      <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;border-bottom:1px solid #ddd3c4;">
+        <div style="min-width:160px;">
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">Overall Score</div>
+          <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">/100</div>
+        </div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">Weighted combination of the four dimensions: Substance 35%, Completeness 20%, Clarity 25%, Reliability 20%. The headline performance indicator.</div>
       </div>
 
       <div style="display:flex;gap:16px;padding:14px 0;align-items:flex-start;">
         <div style="min-width:160px;">
-          <div style="font-size:0.88rem;font-weight:500;color:#1a1008;">Overall Score</div>
+          <div style="font-size:0.98rem;font-weight:500;color:#1a1008;">LLM-as-Judge Score</div>
           <div style="font-size:0.72rem;color:#7a6a58;letter-spacing:1px;">/100</div>
         </div>
-        <div style="font-size:0.84rem;color:#7a6a58;line-height:1.7;">Weighted combination of all quality metrics, the headline performance indicator.</div>
+        <div style="font-size:1.05rem;color:#7a6a58;line-height:1.8;">A second opinion shown next to the rule-based score. A fixed judge model reads each answer and rates the same four dimensions at temperature 0, so the two methods can be compared.</div>
       </div>
 
     </div>
 
-    <div style="background:#1a1008;border-radius:14px;padding:48px;text-align:center;margin-bottom:40px;">
+    <div style="background:#1a1008;border-radius:16px;padding:48px;text-align:center;margin-bottom:40px;">
       <div style="font-family:'Playfair Display',serif;font-size:2rem;color:#faf8f4;margin-bottom:12px;">Ready to benchmark?</div>
-      <p style="color:#a09080;font-size:0.88rem;margin-bottom:28px;line-height:1.8;">Run your first prompt and see how ChatGPT, Claude and Gemini compare in real time.</p>
+      <p style="color:#a09080;font-size:0.98rem;margin-bottom:28px;line-height:1.8;">Run your first prompt and see how ChatGPT, Claude and Gemini compare in real time.</p>
       <button onclick="window.location.href='/'" style="background:#faf8f4;color:#1a1008;border:none;padding:14px 36px;border-radius:8px;font-size:0.78rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;">
         Start Benchmarking
       </button>
@@ -201,8 +255,10 @@
   </main>
 
   <footer>
-    <p>PromptArena &mdash; AI Benchmark Tool &mdash; Aston University 2026</p>
+    <p>PromptArena &#124; AI Benchmark Tool</p>
   </footer>
+
+  <script src="/sidebar.js"></script>
 
 </body>
 </html>
