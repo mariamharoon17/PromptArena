@@ -1,7 +1,3 @@
-// Shared helpers for Build + Code Assist.
-// Both post to the EXISTING /benchmark endpoint, so every run is stored in your
-// existing database and appears in History and Projects. No schema change.
-
 function chipGroup(containerId, multi) {
   const box = document.getElementById(containerId);
   if (!box) return;
